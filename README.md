@@ -1,6 +1,7 @@
 Ejercicio 1 de Github
 
 Arturo Monterroso - Carne No. 201608006
+Arturo Monterroso - Carne No. 201608006 - Me gustan los gatos
 
 
 
@@ -22,3 +23,4 @@ Arturo Monterroso - Carne No. 201608006
 
 
 Kenneth Ramirez - Carne No.202308009
+AQUI NO ACEPTAMOS AL ALAJUELENSE QUE NOS ROBAN HASTA LAS COMPUS
