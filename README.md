@@ -1,3 +1,3 @@
 Ejercicio 1 de Github
 
-Arturo Monterroso - Carne No. 201608006
+Josue Vasquez - Carne No. 202308030
