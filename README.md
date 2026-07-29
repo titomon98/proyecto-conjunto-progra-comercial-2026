@@ -1,5 +1,8 @@
 Ejercicio 1 de Github
 
+giovanni de leon - Carne No. 202308088
+
+Marco Bolaños - 202308016
 Ethan Ruiz - 202308079
 Adrian Giron - 202308036
 Douglas Morales - Carne No. 202308025 - Me gusta el pan
@@ -37,3 +40,4 @@ AQUI NO ACEPTAMOS AL ALAJUELENSE QUE NOS ROBAN HASTA LAS COMPUS
 
 Christian Ramirez - Carno No. 202308041
 
+Josue Vasquez - Carne No. 202308030
