@@ -27,3 +27,33 @@ AQUI NO ACEPTAMOS AL ALAJUELENSE QUE NOS ROBAN HASTA LAS COMPUS
 Christian Ramirez - Carno No. 202308041
 
 Josue Vasquez - Carne No. 202308030
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Kenneth Ramirez - Carne NO - 202308009
