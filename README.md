@@ -21,3 +21,9 @@ Luis Suarez - 202308019!
 AQUI NO ACEPTAMOS AL ALAJUELENSE QUE NOS ROBAN HASTA LAS COMPUS
 
 Christian Ramirez - Carno No. 202308041
+
+
+
+
+
+Kenneth Ramirez - Carne No. 202308009
