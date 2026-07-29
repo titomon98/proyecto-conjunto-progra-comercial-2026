@@ -20,20 +20,16 @@ marvin tenia razon
 Luis Suarez - 202308019!
 
 AQUI NO ACEPTAMOS AL ALAJUELENSE QUE NOS ROBAN HASTA LAS COMPUS
-<<<<<<< HEAD
 AQUI NO ACEPTAMOS AL ALAJUELENSE QUE NOS ROBAN HASTA LAS COMPUS
 
 
 
 
-Mario Guzman - Carne No. 202308049
 
 
 
 
 
-=======
->>>>>>> 2122040050936c0b28b4aae0aeb2f89f80aae5a1
 
 Christian Ramirez - Carno No. 202308041
 
