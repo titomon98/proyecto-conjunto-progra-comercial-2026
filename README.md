@@ -12,6 +12,8 @@ marvin tenia razon
 
 Arturo Monterroso - Carne No. 201608066 - Me gustan los gatos
 
+Luis Suarez - 202308019!
+
 AQUI NO ACEPTAMOS AL ALAJUELENSE QUE NOS ROBAN HASTA LAS COMPUS
 
 Christian Ramirez - Carno No. 202308041
