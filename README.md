@@ -1,3 +1,3 @@
 Ejercicio 1 de Github
 
-Arturo Monterroso - Carne No. 201608006
+Marco Siguenza - Carne No.202308022
