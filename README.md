@@ -1,10 +1,10 @@
 Ejercicio 1 de Github
 
+Juan José Martínez - 202208011
 Andrea López - 202308101
 Marco Siguenza - 202308022
 Arturo Monterroso - Carne No. 201608006 - Me gustan los gatos
 
-Juan José Martínez - 202208011
 
 
 AQUI NO ACEPTAMOS AL ALAJUELENSE QUE NOS ROBAN HASTA LAS COMPUS
