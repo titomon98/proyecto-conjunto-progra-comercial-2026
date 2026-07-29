@@ -1,6 +1,7 @@
 Ejercicio 1 de Github
 
 Ethan Ruiz - 202308079
+Adrian Giron - 202308036
 Douglas Morales - Carne No. 202308025 - Me gusta el pan
 
 Marvin Fuentes - Carne No. 202308032
