@@ -1,3 +1,5 @@
 Ejercicio 1 de Github
 
-Arturo Monterroso - Carne No. 201608006
+Sebastian Orozco - Carne No. 202308067
+
+marvin tenia razon
