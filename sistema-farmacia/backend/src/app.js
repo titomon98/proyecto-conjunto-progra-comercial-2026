@@ -57,4 +57,7 @@ app.listen(PORT, () => {
   console.log(`Backend escuchando en http://localhost:${PORT}`);
 });
 
+app.get('/', (req, res) => {
+  res.json({ mensaje: 'API Sistema de Farmacia - ver /api/health para status' });
+});
 module.exports = app;
