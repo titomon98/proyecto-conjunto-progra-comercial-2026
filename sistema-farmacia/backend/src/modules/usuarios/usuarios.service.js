@@ -3,15 +3,15 @@
 // se apoya en el model para leer y escribir datos.
 
 // TODO (equipo usuarios): implementar la logica de negocio del modulo.
-const listar = async () => {};
+const listar = async () => { };
 
-const obtenerPorId = async (id) => {};
+const obtenerPorId = async (id) => { };
 
-const crear = async (datos) => {};
+const crear = async (datos) => { };
 
-const actualizar = async (id, datos) => {};
+const actualizar = async (id, datos) => { };
 
-const eliminar = async (id) => {};
+const eliminar = async (id) => { };
 
 module.exports = {
   listar,
