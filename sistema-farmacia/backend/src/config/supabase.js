@@ -1,19 +1,17 @@
-// Configuracion del cliente de Supabase (PostgreSQL).
-// PLACEHOLDER: aqui NO se abre ninguna conexion real todavia.
-// Cuando el equipo de infraestructura habilite las credenciales, descomentar
-// la creacion del cliente y llenar las variables en el archivo .env.
+// Cliente de Supabase (PostgreSQL) compartido por todo el backend.
+// Se crea una sola vez y se reutiliza desde los model de cada modulo.
+const { createClient } = require('@supabase/supabase-js');
+const ws = require('ws');
 
-// const { createClient } = require('@supabase/supabase-js');
+// Node 20 no incluye WebSocket nativo y supabase-js lo necesita para inicializar
+// su cliente de Realtime. Le pasamos el paquete "ws" como transporte.
+// Si el equipo migra a Node >= 22, esta opcion se puede eliminar.
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_ANON_KEY,
+  {
+    realtime: { transport: ws },
+  }
+);
 
-const SUPABASE_URL = process.env.SUPABASE_URL || '';
-const SUPABASE_KEY = process.env.SUPABASE_KEY || '';
-
-// TODO: reemplazar este placeholder por el cliente real.
-//   const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-const supabase = null;
-
-module.exports = {
-  supabase,
-  SUPABASE_URL,
-  SUPABASE_KEY,
-};
+module.exports = supabase;

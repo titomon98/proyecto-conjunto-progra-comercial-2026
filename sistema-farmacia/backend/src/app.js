@@ -1,8 +1,12 @@
 // Punto de entrada del backend.
 // Responsabilidad: crear la app de Express, registrar middlewares globales y
 // montar el router publico de cada modulo bajo su prefijo /api.
+// dotenv debe cargarse ANTES de requerir config/supabase, porque ese archivo
+// lee process.env al momento de crear el cliente.
 require('dotenv').config();
 const express = require('express');
+
+const supabase = require('./config/supabase');
 
 const usuarios = require('./modules/usuarios');
 const clientes = require('./modules/clientes');
@@ -16,7 +20,28 @@ const app = express();
 
 app.use(express.json());
 
-app.get('/api/health', (req, res) => res.json({ ok: true }));
+// Health check: confirma que el backend responde y que la conexion a Supabase
+// funciona, contando los registros de la tabla usuarios.
+app.get('/api/health', async (req, res) => {
+  const { count, error } = await supabase
+    .from('usuarios')
+    .select('*', { count: 'exact', head: true });
+
+  if (error) {
+    return res.status(503).json({
+      ok: false,
+      supabase: 'error',
+      mensaje: error.message,
+    });
+  }
+
+  return res.json({
+    ok: true,
+    supabase: 'conectado',
+    tabla: 'usuarios',
+    registros: count,
+  });
+});
 
 app.use('/api/usuarios', usuarios.router);
 app.use('/api/clientes', clientes.router);
@@ -32,4 +57,7 @@ app.listen(PORT, () => {
   console.log(`Backend escuchando en http://localhost:${PORT}`);
 });
 
+app.get('/', (req, res) => {
+  res.json({ mensaje: 'API Sistema de Farmacia - ver /api/health para status' });
+});
 module.exports = app;
