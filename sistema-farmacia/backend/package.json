@@ -1,0 +1,19 @@
+{
+  "name": "sistema-farmacia-backend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Backend modular del Sistema de Farmacia (Node.js + Express + Supabase)",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  }
+}
