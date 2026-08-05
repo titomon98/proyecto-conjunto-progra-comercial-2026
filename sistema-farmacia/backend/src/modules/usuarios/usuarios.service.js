@@ -3,7 +3,9 @@
 // se apoya en el model para leer y escribir datos.
 
 // TODO (equipo usuarios): implementar la logica de negocio del modulo.
-const listar = async () => {};
+const listar = async () => {
+  
+};
 
 const obtenerPorId = async (id) => {};
 

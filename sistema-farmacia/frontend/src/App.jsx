@@ -1,12 +1,13 @@
 // Componente raiz de la aplicacion.
-// PLACEHOLDER: cada equipo montara aqui la pantalla de su modulo
-// (o el router general, cuando se defina).
+// Muestra el Login como pantalla principal del modulo de usuarios.
+
+import Login from './modules/usuarios/Login';
 
 export default function App() {
-  return (
-    <main>
-      <h1>Sistema de Farmacia</h1>
-      <p>Esqueleto del proyecto. Cada equipo trabaja en src/modules/.</p>
-    </main>
-  );
+  const handleLoginSuccess = (data) => {
+    console.log('Login exitoso:', data);
+    // TODO: redirigir al dashboard o modulo principal
+  };
+
+  return <Login onLoginSuccess={handleLoginSuccess} />;
 }
