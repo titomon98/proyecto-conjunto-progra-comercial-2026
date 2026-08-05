@@ -1,10 +1,12 @@
-// Rutas del modulo medicamentos.
-// Responsabilidad: mapear cada endpoint HTTP con su funcion del controller.
-const { Router } = require('express');
+const { Router } = require('express')
+const medicamentosController = require('./medicamentos.controller')
 
-const router = Router();
+const router = Router()
 
-// TODO (equipo medicamentos): declarar aqui las rutas del modulo.
-// Ejemplo: router.get('/', medicamentosController.listar);
+router.get('/', medicamentosController.listar)
+router.get('/:id', medicamentosController.obtenerPorId)
+router.post('/', medicamentosController.crear)
+router.put('/:id', medicamentosController.actualizar)
+router.delete('/:id', medicamentosController.eliminar)
 
-module.exports = router;
+module.exports = router
