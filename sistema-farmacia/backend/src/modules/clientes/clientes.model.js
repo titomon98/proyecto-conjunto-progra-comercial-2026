@@ -2,7 +2,7 @@
 // Responsabilidad: acceso a datos. Unica capa que habla directamente con
 // Supabase / PostgreSQL para la(s) tabla(s) de este modulo.
 
-const { supabase } = require('../../config/supabase');
+const supabase = require('../../config/supabase');
 
 const TABLA = 'clientes';
 
