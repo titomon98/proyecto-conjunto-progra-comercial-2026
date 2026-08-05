@@ -70,5 +70,46 @@ Para evitar cuellos de botella y errores de dependencias de llaves foráneas, el
 *   **Fase 3 (Módulo de 2do grado):** Inventario *(requiere que Medicamentos ya esté integrado).*
 *   **Fase 4 (Módulo Transaccional):** Ventas *(requiere Usuarios, Clientes e Inventario listos).*
 *   **Fase 5 (Módulo de Consumo):** Reportes *(depende de que todos los módulos anteriores estén emitiendo y registrando datos correctamente).*
-## 7. Línea gráfica
+## 7. Guía de Interfaz y Línea Gráfica (UI/UX)
+Para mantener la coherencia visual entre los 7 módulos y garantizar que la aplicación se perciba como un sistema unificado (y no como 7 proyectos distintos), todos los equipos deberán apegarse a las siguientes convenciones utilizando las clases de utilidad de Tailwind CSS.
+
+7.1. Paleta de Colores Base
+El diseño debe ser limpio, clínico y evitar la fatiga visual de los usuarios finales.
+
+Fondo de la aplicación (Background): Gris muy tenue (bg-slate-50 o bg-gray-50).
+
+Contenedores principales (Cards, Tablas, Formularios): Blanco puro (bg-white) para contrastar con el fondo.
+
+Color Primario (Acciones principales, guardados, marca): Azul médico (bg-blue-600, con hover en hover:bg-blue-700).
+
+Textos:
+
+Títulos: Gris oscuro (text-gray-800).
+
+Textos secundarios y descripciones: Gris medio (text-gray-500 o text-gray-600). No usar negro puro (text-black).
+
+7.2. Tipografía
+Se utilizará la familia tipográfica sin serifas por defecto de Tailwind (sans) o, preferiblemente, la fuente Inter.
+
+Mantener la jerarquía de tamaños de Tailwind (text-sm para tablas, text-base para inputs, text-xl o text-2xl para títulos de módulo).
+
+7.3. Estructura de Componentes
+Bordes y Sombras: Todas las tarjetas, tablas y ventanas modales deben tener bordes redondeados (rounded-lg o rounded-xl) y sombras sutiles (shadow-sm). Evitar sombras pesadas.
+
+Botones:
+
+Primario (Ej. Guardar, Nuevo): bg-blue-600 text-white rounded-md px-4 py-2 hover:bg-blue-700 transition-colors.
+
+Secundario (Ej. Cancelar, Regresar): bg-white border border-gray-300 text-gray-700 rounded-md px-4 py-2 hover:bg-gray-50 transition-colors.
+
+Tablas (CRUDs): Encabezados con fondo claro (bg-gray-50) y bordes inferiores suaves (border-b border-gray-200). Filas con efecto hover ligero (hover:bg-gray-50/50).
+
+7.4. Indicadores de Estado (Alertas y Badges)
+Para estandarizar la forma en que los módulos de Inventario, Ventas y Reportes muestran información crítica:
+
+Éxito / Óptimo / Activo: Fondo verde claro con texto verde oscuro (bg-green-100 text-green-700).
+
+Advertencia / Precaución: Fondo ámbar con texto ámbar oscuro (bg-amber-100 text-amber-700). Ej. Stock bajo.
+
+Error / Crítico / Inactivo: Fondo rojo claro con texto rojo oscuro (bg-red-100 text-red-700). Ej. Sin stock, medicamento caducado o eliminación de registro.
 
