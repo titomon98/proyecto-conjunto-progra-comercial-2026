@@ -1,4 +1,4 @@
-const { supabase } = require('../../config/supabase')
+const supabase = require('../../config/supabase')
 
 const TABLA = 'medicamentos'
 
@@ -10,7 +10,10 @@ const findAll = async () => {
 
 const findById = async id => {
   const { data, error } = await supabase.from(TABLA).select('*').eq('id_medicamento', id).single()
-  if (error) throw error
+  if (error) {
+    if (error.code === 'PGRST116') return null // no encontrado, no es un error real
+    throw error
+  }
   return data
 }
 
