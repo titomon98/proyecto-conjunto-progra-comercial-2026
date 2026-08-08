@@ -1,10 +1,13 @@
-// Rutas del modulo ventas.
-// Responsabilidad: mapear cada endpoint HTTP con su funcion del controller.
-const { Router } = require('express');
+// backend/src/modules/ventas/ventas.routes.js
+import { Router } from 'express';
+import { registrarVenta, obtenerVentas } from './ventas.controller.js';
 
 const router = Router();
 
-// TODO (equipo ventas): declarar aqui las rutas del modulo.
-// Ejemplo: router.get('/', ventasController.listar);
+// POST http://localhost:3000/api/ventas -> Crear Venta
+router.post('/', registrarVenta);
 
-module.exports = router;
+// GET http://localhost:3000/api/ventas -> Listar Ventas
+router.get('/', obtenerVentas);
+
+export default router;

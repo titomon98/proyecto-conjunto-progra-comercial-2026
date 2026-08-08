@@ -1,14 +1,6 @@
-// Punto de entrada publico del modulo ventas.
-// Exporta UNICAMENTE lo que este modulo expone hacia el resto del sistema.
-// Los demas archivos del modulo son internos: no deben importarse desde fuera.
+// backend/src/modules/ventas/index.js
+import { obtenerListaVentas } from './ventas.service.js';
 
-const router = require('./ventas.routes');
-
-// TODO (equipo ventas): agregar aqui las funciones del service que otros
-// modulos necesiten consumir. Ejemplo:
-//   const ventasService = require('./ventas.service');
-//   module.exports = { router, obtenerPorId: ventasService.obtenerPorId };
-
-module.exports = {
-  router,
+export default {
+  obtenerVentasParaReportes: obtenerListaVentas
 };
