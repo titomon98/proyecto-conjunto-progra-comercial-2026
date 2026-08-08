@@ -96,9 +96,32 @@ npm install
 npm run dev               # http://localhost:5173
 ```
 
+## Conexión a Supabase
+
+`backend/src/config/supabase.js` ya crea el cliente real y lo exporta. Desde el
+model de tu módulo se usa así:
+
+```js
+const supabase = require('../../config/supabase');
+```
+
+Para comprobar que tu entorno quedó bien configurado, levanta el backend y abre
+`http://localhost:3000/api/health`. Debe responder:
+
+```json
+{ "ok": true, "supabase": "conectado", "tabla": "usuarios", "registros": 5 }
+```
+
+Si responde `503`, revisa que tu `backend/.env` tenga `SUPABASE_URL` y
+`SUPABASE_ANON_KEY`. **El `.env` no está en el repositorio** (está en `.gitignore`):
+pídele las credenciales al encargado del grupo y crea el tuyo a partir de `.env.example`.
+
+> Nota: el proyecto corre sobre Node 20, que no trae `WebSocket` nativo. Por eso
+> `supabase.js` le pasa el paquete `ws` como transporte de Realtime. Si migran a
+> Node 22 o superior, esa opción se puede quitar.
+
 ## Pendientes del esqueleto
 
 - Inicializar Tailwind en el frontend (`npx tailwindcss init -p` y crear `src/index.css`).
 - Definir el esquema de la base y agregar las migraciones en `backend/database/migrations/`.
-- Implementar la conexión real en `backend/src/config/supabase.js`.
 - Implementar la validación de token en `backend/src/middlewares/auth.middleware.js`.

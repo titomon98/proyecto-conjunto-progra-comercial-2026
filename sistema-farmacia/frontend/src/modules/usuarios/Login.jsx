@@ -47,7 +47,7 @@ export default function Login({ onLoginSuccess }) {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.message || 'Credenciales incorrectas.');
+        throw new Error(data.error || 'Credenciales incorrectas.');
       }
 
       // Guardar token en localStorage
@@ -102,7 +102,7 @@ export default function Login({ onLoginSuccess }) {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.message || 'Error al crear la cuenta.');
+        throw new Error(data.error || 'Error al crear la cuenta.');
       }
 
       setMensaje({ texto: '¡Cuenta creada exitosamente! Ahora puedes iniciar sesión.', tipo: 'exito' });
