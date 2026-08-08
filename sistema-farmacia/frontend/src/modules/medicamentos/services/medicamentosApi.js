@@ -23,3 +23,36 @@ export const obtenerMedicamentoPorId = async (id) => {
   }
   return await response.json();
 };
+
+export const crearMedicamento = async (datos) => {
+  const response = await fetch(BASE_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(datos)
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'Error al registrar el medicamento');
+  return data;
+};
+
+
+export const actualizarMedicamento = async (id, datos) => {
+  const response = await fetch(`${BASE_URL}/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(datos)
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'Error al actualizar el medicamento');
+  return data;
+};
+
+
+export const eliminarMedicamento = async (id) => {
+  const response = await fetch(`${BASE_URL}/${id}`, { method: 'DELETE' });
+  if (!response.ok && response.status !== 204) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error(data.error || 'Error al eliminar el medicamento');
+  }
+  return true;
+};

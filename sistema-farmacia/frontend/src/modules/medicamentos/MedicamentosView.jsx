@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { obtenerMedicamentos } from './services/medicamentosApi';
+import { 
+  obtenerMedicamentos, 
+  crearMedicamento, 
+  actualizarMedicamento, 
+  eliminarMedicamento 
+} from './services/medicamentosApi';
 import { TablaMedicamentos } from './components/TablaMedicamentos';
+import { FormularioMedicamento } from './components/FormularioMedicamento';
 import { exportarMedicamentosCSV } from './utils/exportarReporte';
 
 export function MedicamentosView() {
@@ -8,6 +14,8 @@ export function MedicamentosView() {
   const [busqueda, setBusqueda] = useState('');
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState(null);
+  const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  const [medicamentoEditar, setMedicamentoEditar] = useState(null);
 
   useEffect(() => {
     cargarMedicamentos();
@@ -26,7 +34,40 @@ export function MedicamentosView() {
     }
   };
 
-  // Filtrado dinámico en memoria por nombre o descripción
+  const handleGuardar = async (formData) => {
+    try {
+      if (medicamentoEditar) {
+        await actualizarMedicamento(medicamentoEditar.id_medicamento, formData);
+      } else {
+        await crearMedicamento(formData);
+      }
+      setMostrarFormulario(false);
+      setMedicamentoEditar(null);
+      await cargarMedicamentos();
+    } catch (err) {
+      alert(`Error: ${err.message}`);
+    }
+  };
+
+  const handleEditar = (id) => {
+    const med = medicamentos.find(item => item.id_medicamento === id);
+    if (med) {
+      setMedicamentoEditar(med);
+      setMostrarFormulario(true);
+    }
+  };
+
+  const handleEliminar = async (id) => {
+    if (window.confirm('¿Está seguro de que desea eliminar este medicamento?')) {
+      try {
+        await eliminarMedicamento(id);
+        await cargarMedicamentos();
+      } catch (err) {
+        alert(`Error al eliminar: ${err.message}`);
+      }
+    }
+  };
+
   const medicamentosFiltrados = medicamentos.filter((med) => {
     const termino = busqueda.toLowerCase();
     const nombreCoincide = med.nombre?.toLowerCase().includes(termino);
@@ -36,9 +77,30 @@ export function MedicamentosView() {
 
   return (
     <div style={{ padding: '1rem' }}>
-      <h2>Módulo de Medicamentos</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+        <h2>Módulo de Medicamentos</h2>
+        <button
+          onClick={() => {
+            setMedicamentoEditar(null);
+            setMostrarFormulario(!mostrarFormulario);
+          }}
+          style={{ backgroundColor: '#2563eb', color: '#fff', padding: '0.5rem 1rem', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+        >
+          {mostrarFormulario ? 'Cerrar Formulario' : '+ Nuevo Medicamento'}
+        </button>
+      </div>
 
-      {/* Buscador y Botón de Exportar */}
+      {mostrarFormulario && (
+        <FormularioMedicamento
+          medicamentoEditar={medicamentoEditar}
+          onGuardar={handleGuardar}
+          onCancelar={() => {
+            setMostrarFormulario(false);
+            setMedicamentoEditar(null);
+          }}
+        />
+      )}
+
       <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
         <input
           type="text"
@@ -49,15 +111,7 @@ export function MedicamentosView() {
         />
         <button
           onClick={() => exportarMedicamentosCSV(medicamentosFiltrados)}
-          style={{
-            backgroundColor: '#16a34a',
-            color: '#ffffff',
-            padding: '0.5rem 1rem',
-            border: 'none',
-            borderRadius: '0.25rem',
-            cursor: 'pointer',
-            fontWeight: '500'
-          }}
+          style={{ backgroundColor: '#16a34a', color: '#fff', padding: '0.5rem 1rem', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
         >
           Exportar Reporte (CSV)
         </button>
@@ -80,8 +134,8 @@ export function MedicamentosView() {
           <tbody>
             <TablaMedicamentos
               medicamentos={medicamentosFiltrados}
-              onEditar={(id) => console.log('Editar ID:', id)}
-              onEliminar={(id) => console.log('Eliminar ID:', id)}
+              onEditar={handleEditar}
+              onEliminar={handleEliminar}
             />
           </tbody>
         </table>
