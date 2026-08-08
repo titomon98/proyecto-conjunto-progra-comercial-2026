@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { obtenerMedicamentos } from './services/medicamentosApi';
 import { TablaMedicamentos } from './components/TablaMedicamentos';
+import { exportarMedicamentosCSV } from './utils/exportarReporte';
 
 export function MedicamentosView() {
   const [medicamentos, setMedicamentos] = useState([]);
@@ -37,15 +38,29 @@ export function MedicamentosView() {
     <div style={{ padding: '1rem' }}>
       <h2>Módulo de Medicamentos</h2>
 
-      {/* Buscador */}
-      <div style={{ marginBottom: '1rem' }}>
+      {/* Buscador y Botón de Exportar */}
+      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
         <input
           type="text"
           placeholder="Buscar medicamento por nombre o descripción..."
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
-          style={{ width: '100%', padding: '0.5rem' }}
+          style={{ flex: 1, padding: '0.5rem' }}
         />
+        <button
+          onClick={() => exportarMedicamentosCSV(medicamentosFiltrados)}
+          style={{
+            backgroundColor: '#16a34a',
+            color: '#ffffff',
+            padding: '0.5rem 1rem',
+            border: 'none',
+            borderRadius: '0.25rem',
+            cursor: 'pointer',
+            fontWeight: '500'
+          }}
+        >
+          Exportar Reporte (CSV)
+        </button>
       </div>
 
       {cargando && <p>Cargando medicamentos...</p>}
