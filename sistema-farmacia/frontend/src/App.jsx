@@ -1,15 +1,17 @@
-// Componente raiz de la aplicacion.
-// Gestiona el flujo de autenticacion: Login o vista principal de Usuarios.
+// Componente raíz de la aplicación.
+// Gestiona el flujo de autenticación y la navegación entre módulos.
 
 import { useState, useEffect } from 'react';
 import Login from './modules/usuarios/Login';
 import Usuarios from './modules/usuarios/Usuarios';
+import { MedicamentosView } from './modules/medicamentos/MedicamentosView';
 
 export default function App() {
   const [token, setToken] = useState(null);
   const [usuarioActual, setUsuarioActual] = useState(null);
+  const [moduloActivo, setModuloActivo] = useState('medicamentos'); // Tab activa por defecto
 
-  // ── Leer sesion guardada al montar ──
+  // ── Leer sesión guardada al montar ──
   useEffect(() => {
     const tokenGuardado = localStorage.getItem('token');
     const usuarioGuardado = localStorage.getItem('usuario');
@@ -32,7 +34,7 @@ export default function App() {
     setUsuarioActual(data.usuario);
   };
 
-  // ── Cerrar sesion ──
+  // ── Cerrar sesión ──
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('usuario');
@@ -41,17 +43,17 @@ export default function App() {
   };
 
   // ── Sin token: mostrar Login ──
-  if (token) {
+  if (!token) {
     return <Login onLoginSuccess={handleLoginSuccess} />;
   }
 
-  // ── Con token: mostrar aplicacion ──
+  // ── Con token: mostrar aplicación ──
   return (
     <div className="min-h-screen bg-slate-50">
       {/* ── Header ── */}
       <header className="bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          {/* Logo / Titulo */}
+          {/* Logo / Título */}
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -61,7 +63,7 @@ export default function App() {
             <h1 className="text-lg font-semibold text-gray-800">Sistema de Farmacia</h1>
           </div>
 
-          {/* Info de usuario + Cerrar sesion */}
+          {/* Info de usuario + Cerrar sesión */}
           <div className="flex items-center gap-4">
             <div className="text-right hidden sm:block">
               <p className="text-sm font-medium text-gray-800">
@@ -77,7 +79,7 @@ export default function App() {
               {(usuarioActual?.nombre || 'U').charAt(0).toUpperCase()}
             </div>
 
-            {/* Boton cerrar sesion */}
+            {/* Botón cerrar sesión */}
             <button
               onClick={handleLogout}
               className="bg-white border border-gray-300 text-gray-700 rounded-md px-3 py-1.5 text-sm hover:bg-gray-50 transition-colors flex items-center gap-1.5"
@@ -89,11 +91,36 @@ export default function App() {
             </button>
           </div>
         </div>
+
+        {/* ── Navegación de Módulos (Tabs) ── */}
+        <div className="max-w-6xl mx-auto px-4 flex gap-4 mt-2 border-t border-gray-100 pt-2">
+          <button
+            onClick={() => setModuloActivo('medicamentos')}
+            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+              moduloActivo === 'medicamentos'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            Medicamentos
+          </button>
+          <button
+            onClick={() => setModuloActivo('usuarios')}
+            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+              moduloActivo === 'usuarios'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            Usuarios
+          </button>
+        </div>
       </header>
 
       {/* ── Contenido principal ── */}
-      <main>
-        <Usuarios onLogout={handleLogout} />
+      <main className="max-w-6xl mx-auto p-4">
+        {moduloActivo === 'medicamentos' && <MedicamentosView />}
+        {moduloActivo === 'usuarios' && <Usuarios onLogout={handleLogout} />}
       </main>
     </div>
   );
