@@ -1,13 +1,13 @@
 // backend/src/modules/ventas/ventas.routes.js
-import { Router } from 'express';
-import { registrarVenta, obtenerVentas } from './ventas.controller.js';
+const { Router } = require('express');
+const ventasController = require('./ventas.controller');
 
 const router = Router();
 
 // POST http://localhost:3000/api/ventas -> Crear Venta
-router.post('/', registrarVenta);
+router.post('/', ventasController.registrarVenta);
 
 // GET http://localhost:3000/api/ventas -> Listar Ventas
-router.get('/', obtenerVentas);
+router.get('/', ventasController.obtenerVentas);
 
-export default router;
+module.exports = router;
