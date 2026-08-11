@@ -5,6 +5,7 @@
 // lee process.env al momento de crear el cliente.
 require('dotenv').config();
 const express = require('express');
+const cors = require('cors');
 
 const supabase = require('./config/supabase');
 
@@ -17,6 +18,13 @@ const ventas = require('./modules/ventas');
 const reportes = require('./modules/reportes');
 
 const app = express();
+
+// El frontend corre en otro puerto (Vite, 5173) que el backend (3000), asi que el
+// navegador trata cada fetch como cross-origin y lo bloquea sin esta cabecera.
+// Se deja abierto a proposito: cada equipo levanta Vite en el puerto que le toque
+// libre (5173, 5174...). Si algun dia esto se despliega, restringir con
+// cors({ origin: 'https://dominio-real' }).
+app.use(cors());
 
 app.use(express.json());
 
