@@ -1,25 +1,86 @@
-// Model del modulo inventario.
-// Responsabilidad: acceso a datos. Unica capa que habla directamente con
-// Supabase / PostgreSQL para la(s) tabla(s) de este modulo.
+const supabase = require("../../config/supabase");
 
-const TABLA = 'inventario';
+const obtenerTodos = async () => {
+  const { data, error } = await supabase
+    .from("inventario")
+    .select("*");
 
-// TODO (equipo inventario): implementar las consultas del modulo.
-const findAll = async () => {};
+  if (error) {
+    throw new Error(error.message);
+  }
 
-const findById = async (id) => {};
+  return data;
+};
 
-const insert = async (datos) => {};
+const obtenerPorId = async (id) => {
+  const { data, error } = await supabase
+    .from("inventario")
+    .select("*")
+    .eq("id_inventario", id)
+    .single();
 
-const update = async (id, datos) => {};
+  if (error) {
+    if (error.code === "PGRST116") {
+      return null;
+    }
 
-const remove = async (id) => {};
+    throw new Error(error.message);
+  }
+
+  return data;
+};
+
+const crear = async (datos) => {
+  const { data, error } = await supabase
+    .from("inventario")
+    .insert([datos])
+    .select()
+    .single();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data;
+};
+
+const actualizar = async (id, datos) => {
+  const { data, error } = await supabase
+    .from("inventario")
+    .update(datos)
+    .eq("id_inventario", id)
+    .select()
+    .single();
+
+  if (error) {
+    if (error.code === "PGRST116") {
+      return null;
+    }
+
+    throw new Error(error.message);
+  }
+
+  return data;
+};
+
+const eliminar = async (id) => {
+  const { data, error } = await supabase
+    .from("inventario")
+    .delete()
+    .eq("id_inventario", id)
+    .select();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data;
+};
 
 module.exports = {
-  TABLA,
-  findAll,
-  findById,
-  insert,
-  update,
-  remove,
+  obtenerTodos,
+  obtenerPorId,
+  crear,
+  actualizar,
+  eliminar,
 };
