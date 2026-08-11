@@ -3,12 +3,12 @@
 // Los demas archivos del modulo son internos: no deben importarse desde fuera.
 
 const router = require('./inventario.routes');
-
-// TODO (equipo inventario): agregar aqui las funciones del service que otros
-// modulos necesiten consumir. Ejemplo:
-//   const inventarioService = require('./inventario.service');
-//   module.exports = { router, obtenerPorId: inventarioService.obtenerPorId };
+const inventarioService = require('./inventario.service');
 
 module.exports = {
   router,
+  // Consumido por Ventas al registrar una venta.
+  descontarStock: inventarioService.descontarStock,
+  // Solo lectura: stock actual de un medicamento.
+  consultarStock: inventarioService.consultarStock,
 };

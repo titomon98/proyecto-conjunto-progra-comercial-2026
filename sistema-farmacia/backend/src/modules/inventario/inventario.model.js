@@ -30,6 +30,26 @@ const obtenerPorId = async (id) => {
   return data;
 };
 
+// Busca la fila de inventario de un medicamento. Ventas la necesita para
+// descontar stock, porque solo conoce el id_medicamento, no el id_inventario.
+const obtenerPorMedicamento = async (idMedicamento) => {
+  const { data, error } = await supabase
+    .from("inventario")
+    .select("*")
+    .eq("id_medicamento", idMedicamento)
+    .single();
+
+  if (error) {
+    if (error.code === "PGRST116") {
+      return null;
+    }
+
+    throw new Error(error.message);
+  }
+
+  return data;
+};
+
 const crear = async (datos) => {
   const { data, error } = await supabase
     .from("inventario")
@@ -80,6 +100,7 @@ const eliminar = async (id) => {
 module.exports = {
   obtenerTodos,
   obtenerPorId,
+  obtenerPorMedicamento,
   crear,
   actualizar,
   eliminar,
