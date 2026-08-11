@@ -1,25 +1,46 @@
-// Model del modulo reportes.
-// Responsabilidad: acceso a datos. Unica capa que habla directamente con
-// Supabase / PostgreSQL para la(s) tabla(s) de este modulo.
+const supabase = require('../../config/supabase');
 
-const TABLA = 'reportes';
+const TABLA_VENTAS = 'ventas';
+const TABLA_DETALLE = 'detalle_ventas';
+const TABLA_MEDICAMENTOS = 'medicamentos';
 
-// TODO (equipo reportes): implementar las consultas del modulo.
-const findAll = async () => {};
+const obtenerVentasConDetalle = async ({ desde, hasta } = {}) => {
+  let query = supabase
+    .from(TABLA_VENTAS)
+    .select(`
+      id_venta,
+      fecha,
+      total,
+      detalle_ventas (
+        id_detalle,
+        id_medicamento,
+        cantidad,
+        subtotal
+      )
+    `)
+    .order('fecha', { ascending: true });
 
-const findById = async (id) => {};
+  if (desde) query = query.gte('fecha', desde);
+  if (hasta) query = query.lt('fecha', hasta);
 
-const insert = async (datos) => {};
+  const { data, error } = await query;
+  if (error) throw error;
+  return data ?? [];
+};
 
-const update = async (id, datos) => {};
+const obtenerCatalogoMedicamentos = async () => {
+  const { data, error } = await supabase
+    .from(TABLA_MEDICAMENTOS)
+    .select('id_medicamento, nombre');
 
-const remove = async (id) => {};
+  if (error) throw error;
+  return data ?? [];
+};
 
 module.exports = {
-  TABLA,
-  findAll,
-  findById,
-  insert,
-  update,
-  remove,
+  TABLA_VENTAS,
+  TABLA_DETALLE,
+  TABLA_MEDICAMENTOS,
+  obtenerVentasConDetalle,
+  obtenerCatalogoMedicamentos,
 };

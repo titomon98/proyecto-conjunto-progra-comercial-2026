@@ -1,10 +1,9 @@
-// Rutas del modulo reportes.
-// Responsabilidad: mapear cada endpoint HTTP con su funcion del controller.
 const { Router } = require('express');
+const reportesController = require('./reportes.controller');
 
 const router = Router();
 
-// TODO (equipo reportes): declarar aqui las rutas del modulo.
-// Ejemplo: router.get('/', reportesController.listar);
+router.get('/medicamentos-mas-vendidos', reportesController.medicamentosMasVendidos);
+router.get('/ventas-diarias', reportesController.ventasDiarias);
 
 module.exports = router;
