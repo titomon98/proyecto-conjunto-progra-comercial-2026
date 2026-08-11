@@ -250,6 +250,23 @@ export default function Login({ onLoginSuccess }) {
               </button>
             </p>
           </div>
+
+          {/* ── Credenciales de prueba ──
+              Ayuda para el desarrollo del curso: son las cuentas sembradas en la
+              base compartida. QUITAR antes de la entrega final. */}
+          {!isRegistering && (
+            <div className="mt-6 pt-4 border-t border-gray-100">
+              <p className="text-xs text-gray-400 mb-1.5">Credenciales de prueba</p>
+              <div className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 space-y-1">
+                <p className="text-xs text-gray-600 font-mono select-all">
+                  admin@farmacia.test
+                </p>
+                <p className="text-xs text-gray-600 font-mono select-all">
+                  hash_placeholder_1
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* ── Footer ── */}
