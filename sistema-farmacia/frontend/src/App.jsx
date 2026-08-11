@@ -17,6 +17,35 @@ const MODULOS = [
   { id: 'usuarios', texto: 'Usuarios' },
 ];
 
+// localStorage se comparte por ORIGEN, no por proyecto: cualquier app que haya
+// corrido antes en localhost:5173 (la rama de otro companero, otro proyecto de
+// Vite) escribe en esta misma llave "usuario". Si lo guardado no tiene la forma
+// que espera esta app, se descarta en vez de romper el render: un objeto donde
+// se espera texto tumba React entero con "Objects are not valid as a React child".
+function leerUsuarioGuardado() {
+  const crudo = localStorage.getItem('usuario');
+  if (!crudo) return null;
+
+  try {
+    const usuario = JSON.parse(crudo);
+    const tieneFormaEsperada =
+      usuario &&
+      typeof usuario === 'object' &&
+      typeof usuario.email === 'string' &&
+      (usuario.rol === undefined || typeof usuario.rol === 'string');
+
+    if (!tieneFormaEsperada) {
+      localStorage.removeItem('usuario');
+      localStorage.removeItem('token');
+      return null;
+    }
+    return usuario;
+  } catch {
+    localStorage.removeItem('usuario');
+    return null;
+  }
+}
+
 export default function App() {
   const [token, setToken] = useState(null);
   const [usuarioActual, setUsuarioActual] = useState(null);
@@ -24,18 +53,17 @@ export default function App() {
 
   // ── Leer sesión guardada al montar ──
   useEffect(() => {
+    const usuarioGuardado = leerUsuarioGuardado();
+
+    // Se lee el token DESPUES de validar el usuario: si la sesion guardada no
+    // servia, leerUsuarioGuardado ya borro ambas llaves y toca volver a entrar.
     const tokenGuardado = localStorage.getItem('token');
-    const usuarioGuardado = localStorage.getItem('usuario');
 
     if (tokenGuardado) {
       setToken(tokenGuardado);
     }
     if (usuarioGuardado) {
-      try {
-        setUsuarioActual(JSON.parse(usuarioGuardado));
-      } catch {
-        localStorage.removeItem('usuario');
-      }
+      setUsuarioActual(usuarioGuardado);
     }
   }, []);
 
@@ -58,6 +86,14 @@ export default function App() {
     return <Login onLoginSuccess={handleLoginSuccess} />;
   }
 
+  // Se fuerza a texto antes de pintar: si el backend algun dia devuelve el rol
+  // como objeto (por ejemplo al normalizarlo en una tabla roles), aqui se
+  // degrada en vez de tumbar toda la aplicacion.
+  const emailUsuario =
+    typeof usuarioActual?.email === 'string' ? usuarioActual.email : 'Usuario';
+  const rolUsuario =
+    typeof usuarioActual?.rol === 'string' ? usuarioActual.rol : 'Sin rol';
+
   // ── Con token: mostrar aplicación ──
   return (
     <div className="min-h-screen bg-slate-50">
@@ -78,17 +114,13 @@ export default function App() {
           <div className="flex items-center gap-4">
             {/* La tabla usuarios no tiene columna nombre: se identifica por email. */}
             <div className="text-right hidden sm:block">
-              <p className="text-sm font-medium text-gray-800">
-                {usuarioActual?.email || 'Usuario'}
-              </p>
-              <p className="text-xs text-gray-500">
-                {usuarioActual?.rol || 'Sin rol'}
-              </p>
+              <p className="text-sm font-medium text-gray-800">{emailUsuario}</p>
+              <p className="text-xs text-gray-500">{rolUsuario}</p>
             </div>
 
             {/* Avatar */}
             <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-semibold">
-              {(usuarioActual?.email || 'U').charAt(0).toUpperCase()}
+              {emailUsuario.charAt(0).toUpperCase()}
             </div>
 
             {/* Botón cerrar sesión */}
