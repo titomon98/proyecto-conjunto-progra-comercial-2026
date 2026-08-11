@@ -1,22 +1,35 @@
 // Service del modulo usuarios.
 // Responsabilidad: logica de negocio del modulo. No conoce req/res ni Express;
 // se apoya en el model para leer y escribir datos.
+//
+// Nota sobre las contrasenas: se guardan y comparan en TEXTO PLANO, tal como
+// estan sembradas en la tabla usuarios de la base compartida. Es una decision
+// consciente del grupo para este proyecto de curso; si alguna vez esto sale de
+// localhost, hay que pasar a bcrypt y re-sembrar las filas existentes.
 
-const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const usuariosModel = require('./usuarios.model');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'cambiar-este-valor';
-const SALT_ROUNDS = 10;
+
+// Rol por defecto de quien se registra solo. Debe ser uno de los valores que ya
+// usa la tabla: Administrador, Vendedor, Bodega, Supervisor.
+const ROL_POR_DEFECTO = 'Vendedor';
 
 // ---------- helpers ----------
 
 const generarToken = (usuario) => {
   return jwt.sign(
-    { id: usuario.id, email: usuario.email, rol: usuario.rol },
+    { id_usuario: usuario.id_usuario, email: usuario.email, rol: usuario.rol },
     JWT_SECRET,
     { expiresIn: '8h' }
   );
+};
+
+// Quita la password de una fila antes de devolverla hacia el controller.
+const sinPassword = (usuario) => {
+  const { password, ...resto } = usuario;
+  return resto;
 };
 
 // ---------- CRUD ----------
@@ -35,26 +48,23 @@ const crear = async (datos) => {
   const existe = await usuariosModel.findByEmail(datos.email);
   if (existe) throw { status: 409, mensaje: 'El email ya esta registrado' };
 
-  const hash = await bcrypt.hash(datos.password, SALT_ROUNDS);
-
   const nuevoUsuario = {
-    nombre: datos.nombre,
     email: datos.email,
-    password_hash: hash,
-    rol: 'admin',
-    activo: true,
+    password: datos.password,
+    rol: datos.rol || ROL_POR_DEFECTO,
   };
 
   return await usuariosModel.insert(nuevoUsuario);
 };
 
 const actualizar = async (id, datos) => {
-  if (datos.password) {
-    datos.password_hash = await bcrypt.hash(datos.password, SALT_ROUNDS);
-    delete datos.password;
-  }
+  // Solo se dejan pasar las columnas que existen en la tabla.
+  const cambios = {};
+  if (datos.email !== undefined) cambios.email = datos.email;
+  if (datos.rol !== undefined) cambios.rol = datos.rol;
+  if (datos.password) cambios.password = datos.password;
 
-  const usuario = await usuariosModel.update(id, datos);
+  const usuario = await usuariosModel.update(id, cambios);
   if (!usuario) throw { status: 404, mensaje: 'Usuario no encontrado' };
   return usuario;
 };
@@ -71,27 +81,19 @@ const login = async (email, password) => {
   const usuario = await usuariosModel.findByEmail(email);
   if (!usuario) throw { status: 401, mensaje: 'Credenciales invalidas' };
 
-  const coincide = await bcrypt.compare(password, usuario.password_hash);
-  if (!coincide) throw { status: 401, mensaje: 'Credenciales invalidas' };
+  if (usuario.password !== password) {
+    throw { status: 401, mensaje: 'Credenciales invalidas' };
+  }
 
-  if (!usuario.activo) throw { status: 403, mensaje: 'Usuario desactivado' };
-
-  const token = generarToken(usuario);
   return {
-    token,
-    usuario: {
-      id: usuario.id,
-      nombre: usuario.nombre,
-      email: usuario.email,
-      rol: usuario.rol,
-    },
+    token: generarToken(usuario),
+    usuario: sinPassword(usuario),
   };
 };
 
 const registro = async (datos) => {
   const usuario = await crear(datos);
-  const token = generarToken(usuario);
-  return { token, usuario };
+  return { token: generarToken(usuario), usuario };
 };
 
 module.exports = {

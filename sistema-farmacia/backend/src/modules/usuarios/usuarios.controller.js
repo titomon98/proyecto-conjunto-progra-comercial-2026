@@ -24,11 +24,11 @@ const obtenerPorId = async (req, res) => {
 
 const crear = async (req, res) => {
   try {
-    const { nombre, email, password } = req.body;
-    if (!nombre || !email || !password) {
-      return res.status(400).json({ error: 'nombre, email y password son obligatorios' });
+    const { email, password, rol } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({ error: 'email y password son obligatorios' });
     }
-    const usuario = await usuariosService.crear({ nombre, email, password });
+    const usuario = await usuariosService.crear({ email, password, rol });
     res.status(201).json(usuario);
   } catch (error) {
     res.status(error.status || 500).json({ error: error.mensaje || 'Error interno' });
@@ -68,11 +68,11 @@ const login = async (req, res) => {
 
 const registro = async (req, res) => {
   try {
-    const { nombre, email, password } = req.body;
-    if (!nombre || !email || !password) {
-      return res.status(400).json({ error: 'nombre, email y password son obligatorios' });
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({ error: 'email y password son obligatorios' });
     }
-    const resultado = await usuariosService.registro({ nombre, email, password });
+    const resultado = await usuariosService.registro({ email, password });
     res.status(201).json(resultado);
   } catch (error) {
     res.status(error.status || 500).json({ error: error.mensaje || 'Error interno' });
