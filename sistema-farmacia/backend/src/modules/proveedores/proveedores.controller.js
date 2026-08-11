@@ -1,92 +1,109 @@
-// backend/src/modules/proveedores/proveedores.controller.js
-// Dueña: Integrante B — Capa HTTP (routes → controller → service)
-//
-// Regla inviolable del README: "El controller nunca habla con el model."
-// Aquí solo se llama al service y se traduce el resultado a HTTP.
-// Cero lógica de negocio, cero acceso a base de datos.
-//
-// Los errores NO se resuelven aquí con try/catch que responde directo:
-// se pasan con next(error) al manejador de errores del módulo (de D).
-//
-// Mientras C no entregue proveedores.service.js, usa el stub incluido en
-// proveedores.service.stub.js (ver ese archivo para instrucciones).
+'use strict';
+
+/**
+ * proveedores.controller.js — CAPA HTTP
+ *
+ * Dueña original: Integrante B.
+ * Ajustes de integración: Integrante D.
+ *
+ * REGLA INVIOLABLE DEL README:
+ * "El controller nunca habla con el model."
+ *
+ * Aquí solo se llama al service y se traduce el resultado a HTTP.
+ *
+ * Los datos ya vienen validados y normalizados por proveedores.validator.js:
+ *
+ * req.datosValidados   ← body de POST / PUT
+ * req.consultaValidada ← query params de GET /
+ * req.idValidado       ← :id (UUID en minúsculas)
+ *
+ * Nunca se lee req.body ni req.query crudos después de la validación.
+ *
+ * No hay try/catch:
+ * envolver() manda cualquier rechazo a next(error), y de ahí al
+ * manejadorErrores del módulo, que es el único que decide los códigos HTTP.
+ */
 
 const service = require('./proveedores.service');
 
-async function crear(req, res, next) {
-  try {
-    const proveedor = await service.crearProveedor(req.body);
-    res.status(201).json({
-      ok: true,
-      mensaje: 'Proveedor creado correctamente',
-      datos: proveedor,
-    });
-  } catch (error) {
-    next(error);
-  }
-}
+const {
+  exito,
+  creado,
+  envolver,
+} = require('./proveedores.errors');
 
-async function listar(req, res, next) {
-  try {
-    const { pagina, limite, busqueda, activo } = req.query;
+/**
+ * POST /api/proveedores
+ */
+const crear = envolver(async (req, res) => {
+  const proveedor = await service.crearProveedor(req.datosValidados);
 
-    const query = {
-      pagina: pagina !== undefined ? Number(pagina) : undefined,
-      limite: limite !== undefined ? Number(limite) : undefined,
-      busqueda,
-      activo: activo !== undefined ? activo === 'true' : undefined,
-    };
+  return creado(res, {
+    mensaje: 'Proveedor creado correctamente',
+    datos: proveedor,
+  });
+});
 
-    const resultado = await service.listarProveedores(query);
+/**
+ * GET /api/proveedores?pagina=&limite=&busqueda=&activo=
+ */
+const listar = envolver(async (req, res) => {
+  const {
+    datos,
+    total,
+    pagina,
+    limite,
+  } = await service.listarProveedores(req.consultaValidada);
 
-    res.status(200).json({
-      ok: true,
-      mensaje: 'Proveedores obtenidos correctamente',
-      datos: resultado,
-    });
-  } catch (error) {
-    next(error);
-  }
-}
+  return exito(res, {
+    mensaje: 'Proveedores obtenidos correctamente',
+    datos,
+    meta: {
+      total,
+      pagina,
+      limite,
+    },
+  });
+});
 
-async function obtenerPorId(req, res, next) {
-  try {
-    const proveedor = await service.obtenerProveedor(req.params.id);
-    res.status(200).json({
-      ok: true,
-      mensaje: 'Proveedor obtenido correctamente',
-      datos: proveedor,
-    });
-  } catch (error) {
-    next(error);
-  }
-}
+/**
+ * GET /api/proveedores/:id
+ */
+const obtenerPorId = envolver(async (req, res) => {
+  const proveedor = await service.obtenerProveedor(req.idValidado);
 
-async function actualizar(req, res, next) {
-  try {
-    const proveedor = await service.actualizarProveedor(req.params.id, req.body);
-    res.status(200).json({
-      ok: true,
-      mensaje: 'Proveedor actualizado correctamente',
-      datos: proveedor,
-    });
-  } catch (error) {
-    next(error);
-  }
-}
+  return exito(res, {
+    mensaje: 'Proveedor obtenido correctamente',
+    datos: proveedor,
+  });
+});
 
-async function desactivar(req, res, next) {
-  try {
-    await service.desactivarProveedor(req.params.id);
-    res.status(200).json({
-      ok: true,
-      mensaje: 'Proveedor desactivado correctamente',
-      datos: null,
-    });
-  } catch (error) {
-    next(error);
-  }
-}
+/**
+ * PUT /api/proveedores/:id
+ */
+const actualizar = envolver(async (req, res) => {
+  const proveedor = await service.actualizarProveedor(
+    req.idValidado,
+    req.datosValidados
+  );
+
+  return exito(res, {
+    mensaje: 'Proveedor actualizado correctamente',
+    datos: proveedor,
+  });
+});
+
+/**
+ * DELETE /api/proveedores/:id — borrado LÓGICO
+ */
+const desactivar = envolver(async (req, res) => {
+  await service.desactivarProveedor(req.idValidado);
+
+  return exito(res, {
+    mensaje: 'Proveedor desactivado correctamente',
+    datos: null,
+  });
+});
 
 module.exports = {
   crear,

@@ -1,28 +1,80 @@
-// backend/src/modules/proveedores/proveedores.routes.js
-// Dueña: Integrante B — Capa HTTP (routes → controller)
-//
-// Regla del README: esta capa solo llama al controller. No importa el
-// service ni el model directamente.
-//
-// NOTA sobre validación: los endpoints que reciben body (POST, PUT) deberían
-// pasar antes por el middleware de D (proveedores.validator.js), que vive
-// DENTRO de esta carpeta (no en backend/src/middlewares/, que es compartido).
-// En cuanto D te entregue ese archivo, monta cada validador así:
-//
-//   const { validarCrear, validarActualizar } = require('./proveedores.validator');
-//   router.post('/', validarCrear, controller.crear);
-//   router.put('/:id', validarActualizar, controller.actualizar);
-//
-// Mientras tanto, las rutas quedan sin validador para no bloquearte.
+'use strict';
+
+/**
+ * proveedores.routes.js — DEFINICIÓN DE ENDPOINTS
+ *
+ * Dueña original: Integrante B.
+ * Ajustes de integración: Integrante D.
+ *
+ * REGLA DEL README:
+ * Esta capa solo llama al controller. No importa el service ni el model.
+ *
+ * ORDEN DE CADA RUTA:
+ * validador(es) → controller
+ *
+ * Los middlewares de error van AL FINAL:
+ * 1. rutaNoEncontrada → 404 para rutas inexistentes dentro de /api/proveedores
+ * 2. manejadorErrores → traduce errores de dominio a HTTP
+ */
 
 const express = require('express');
-const router = express.Router();
-const controller = require('./proveedores.controller');
 
-router.post('/', controller.crear);
-router.get('/', controller.listar);
-router.get('/:id', controller.obtenerPorId);
-router.put('/:id', controller.actualizar);
-router.delete('/:id', controller.desactivar);
+const controller = require('./proveedores.controller');
+const validator = require('./proveedores.validator');
+const {
+  rutaNoEncontrada,
+  manejadorErrores,
+} = require('./proveedores.errors');
+
+const router = express.Router();
+
+// -----------------------------------------------------------------------------
+// Endpoints
+// -----------------------------------------------------------------------------
+
+// POST /api/proveedores
+router.post(
+  '/',
+  validator.validarCrear,
+  controller.crear
+);
+
+// GET /api/proveedores?pagina=&limite=&busqueda=&activo=
+router.get(
+  '/',
+  validator.validarListar,
+  controller.listar
+);
+
+// GET /api/proveedores/:id
+router.get(
+  '/:id',
+  validator.validarIdParam,
+  controller.obtenerPorId
+);
+
+// PUT /api/proveedores/:id
+router.put(
+  '/:id',
+  validator.validarIdParam,
+  validator.validarActualizar,
+  controller.actualizar
+);
+
+// DELETE /api/proveedores/:id
+// Borrado lógico
+router.delete(
+  '/:id',
+  validator.validarIdParam,
+  controller.desactivar
+);
+
+// -----------------------------------------------------------------------------
+// Manejo de errores del módulo
+// Estos middleware deben permanecer al final.
+// -----------------------------------------------------------------------------
+
+router.use(rutaNoEncontrada);
+router.use(manejadorErrores);
 
 module.exports = router;
