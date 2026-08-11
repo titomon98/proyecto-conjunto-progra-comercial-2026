@@ -7,12 +7,14 @@ import Usuarios from './modules/usuarios/Usuarios';
 import { MedicamentosView } from './modules/medicamentos/MedicamentosView';
 import { VentasPage } from './modules/ventas';
 import { ProveedoresPage } from './modules/proveedores';
+import { InventarioView } from './modules/inventario';
 
 // Modulos con pantalla enlazada en la navegacion. Al integrar un modulo nuevo
 // se agrega aqui y se renderiza mas abajo, en el <main>.
 const MODULOS = [
   { id: 'medicamentos', texto: 'Medicamentos' },
   { id: 'proveedores', texto: 'Proveedores' },
+  { id: 'inventario', texto: 'Inventario' },
   { id: 'ventas', texto: 'Ventas' },
   { id: 'usuarios', texto: 'Usuarios' },
 ];
@@ -22,19 +24,31 @@ const MODULOS = [
 // Vite) escribe en esta misma llave "usuario". Si lo guardado no tiene la forma
 // que espera esta app, se descarta en vez de romper el render: un objeto donde
 // se espera texto tumba React entero con "Objects are not valid as a React child".
+// Normaliza el usuario venga de donde venga (localStorage o respuesta del
+// login). Devuelve null si no sirve, y siempre deja email y rol como texto.
+function normalizarUsuario(usuario) {
+  if (!usuario || typeof usuario !== 'object' || Array.isArray(usuario)) return null;
+  if (typeof usuario.email !== 'string') return null;
+
+  return {
+    ...usuario,
+    email: usuario.email,
+    // Si el rol llega como objeto (por ejemplo si algun dia se normaliza en una
+    // tabla roles), se toma su nombre en vez de intentar pintar el objeto.
+    rol:
+      typeof usuario.rol === 'string'
+        ? usuario.rol
+        : usuario.rol?.nombre_rol ?? usuario.rol?.nombre ?? 'Sin rol',
+  };
+}
+
 function leerUsuarioGuardado() {
   const crudo = localStorage.getItem('usuario');
   if (!crudo) return null;
 
   try {
-    const usuario = JSON.parse(crudo);
-    const tieneFormaEsperada =
-      usuario &&
-      typeof usuario === 'object' &&
-      typeof usuario.email === 'string' &&
-      (usuario.rol === undefined || typeof usuario.rol === 'string');
-
-    if (!tieneFormaEsperada) {
+    const usuario = normalizarUsuario(JSON.parse(crudo));
+    if (!usuario) {
       localStorage.removeItem('usuario');
       localStorage.removeItem('token');
       return null;
@@ -42,6 +56,7 @@ function leerUsuarioGuardado() {
     return usuario;
   } catch {
     localStorage.removeItem('usuario');
+    localStorage.removeItem('token');
     return null;
   }
 }
@@ -68,9 +83,12 @@ export default function App() {
   }, []);
 
   // ── Login exitoso ──
+  // Tambien se normaliza aqui: el backend al que apunte el frontend podria no
+  // ser el de este repositorio (otra rama del grupo, otro puerto) y devolver el
+  // usuario con otra forma.
   const handleLoginSuccess = (data) => {
     setToken(data.token);
-    setUsuarioActual(data.usuario);
+    setUsuarioActual(normalizarUsuario(data.usuario));
   };
 
   // ── Cerrar sesión ──
@@ -158,6 +176,7 @@ export default function App() {
       <main className="max-w-6xl mx-auto p-4">
         {moduloActivo === 'medicamentos' && <MedicamentosView />}
         {moduloActivo === 'proveedores' && <ProveedoresPage />}
+        {moduloActivo === 'inventario' && <InventarioView />}
         {moduloActivo === 'ventas' && <VentasPage usuario={usuarioActual} />}
         {moduloActivo === 'usuarios' && <Usuarios onLogout={handleLogout} />}
       </main>
