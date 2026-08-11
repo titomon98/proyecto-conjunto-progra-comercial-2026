@@ -6,11 +6,13 @@ import Login from './modules/usuarios/Login';
 import Usuarios from './modules/usuarios/Usuarios';
 import { MedicamentosView } from './modules/medicamentos/MedicamentosView';
 import { VentasPage } from './modules/ventas';
+import { ProveedoresPage } from './modules/proveedores';
 
 // Modulos con pantalla enlazada en la navegacion. Al integrar un modulo nuevo
 // se agrega aqui y se renderiza mas abajo, en el <main>.
 const MODULOS = [
   { id: 'medicamentos', texto: 'Medicamentos' },
+  { id: 'proveedores', texto: 'Proveedores' },
   { id: 'ventas', texto: 'Ventas' },
   { id: 'usuarios', texto: 'Usuarios' },
 ];
@@ -123,6 +125,7 @@ export default function App() {
       {/* ── Contenido principal ── */}
       <main className="max-w-6xl mx-auto p-4">
         {moduloActivo === 'medicamentos' && <MedicamentosView />}
+        {moduloActivo === 'proveedores' && <ProveedoresPage />}
         {moduloActivo === 'ventas' && <VentasPage usuario={usuarioActual} />}
         {moduloActivo === 'usuarios' && <Usuarios onLogout={handleLogout} />}
       </main>

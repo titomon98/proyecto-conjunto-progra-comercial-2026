@@ -45,7 +45,7 @@ const crear = envolver(async (req, res) => {
 });
 
 /**
- * GET /api/proveedores?pagina=&limite=&busqueda=&activo=
+ * GET /api/proveedores?pagina=&limite=&busqueda=
  */
 const listar = envolver(async (req, res) => {
   const {
@@ -94,13 +94,15 @@ const actualizar = envolver(async (req, res) => {
 });
 
 /**
- * DELETE /api/proveedores/:id — borrado LÓGICO
+ * DELETE /api/proveedores/:id — borrado FÍSICO
+ * La tabla no tiene columna `activo`, así que no hay borrado lógico. Si el
+ * proveedor tiene medicamentos asociados, el service responde 409.
  */
-const desactivar = envolver(async (req, res) => {
-  await service.desactivarProveedor(req.idValidado);
+const eliminar = envolver(async (req, res) => {
+  await service.eliminarProveedor(req.idValidado);
 
   return exito(res, {
-    mensaje: 'Proveedor desactivado correctamente',
+    mensaje: 'Proveedor eliminado correctamente',
     datos: null,
   });
 });
@@ -110,5 +112,5 @@ module.exports = {
   listar,
   obtenerPorId,
   actualizar,
-  desactivar,
+  eliminar,
 };

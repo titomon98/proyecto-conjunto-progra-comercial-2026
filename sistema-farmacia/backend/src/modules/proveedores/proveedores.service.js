@@ -9,8 +9,11 @@
  *   - Lanza errores de DOMINIO (NotFoundError, ConflictError).
  *     La traducción a códigos HTTP la hace proveedores.errors.js.
  *
- * FIRMAS CONGELADAS: el controller y otros equipos ya dependen de estos
- * nombres. No renombrar sin avisar al equipo completo.
+ * SOBRE EL BORRADO: la tabla real no tiene columna `activo`, así que no hay
+ * borrado lógico. `eliminarProveedor` borra de verdad, y quien protege la
+ * integridad es la llave foránea de Medicamentos: si el proveedor tiene
+ * medicamentos, PostgreSQL rechaza el DELETE con el código 23503 y aquí se
+ * traduce a un 409 con un mensaje que se entiende.
  */
 
 const model = require('./proveedores.model');
@@ -18,15 +21,15 @@ const { NotFoundError, ConflictError } = require('./proveedores.errors');
 
 /**
  * Crea un proveedor.
- * Regla de negocio: no puede haber dos proveedores ACTIVOS con el mismo nombre.
+ * Regla de negocio: no puede haber dos proveedores con el mismo nombre.
  * @param {object} dto - Datos ya validados y sanitizados por el validator.
  * @returns {Promise<object>}
- * @throws {ConflictError} 409 si el nombre ya está tomado por un activo.
+ * @throws {ConflictError} 409 si el nombre ya está tomado.
  */
 async function crearProveedor(dto) {
   const duplicado = await model.existePorNombre(dto.nombre);
   if (duplicado) {
-    throw new ConflictError('Ya existe un proveedor activo con ese nombre');
+    throw new ConflictError('Ya existe un proveedor con ese nombre');
   }
   return model.crear(dto);
 }
@@ -43,10 +46,9 @@ async function listarProveedores(query = {}) {
     pagina = 1,
     limite = 10,
     busqueda = null,
-    activo = true, // null = activos e inactivos
   } = query;
 
-  const { datos, total } = await model.obtenerTodos({ pagina, limite, busqueda, activo });
+  const { datos, total } = await model.obtenerTodos({ pagina, limite, busqueda });
 
   return { datos, total, pagina, limite };
 }
@@ -83,7 +85,7 @@ async function actualizarProveedor(id, dto) {
   if (dto.nombre) {
     const duplicado = await model.existePorNombre(dto.nombre, id);
     if (duplicado) {
-      throw new ConflictError('Ya existe otro proveedor activo con ese nombre');
+      throw new ConflictError('Ya existe otro proveedor con ese nombre');
     }
   }
 
@@ -96,16 +98,27 @@ async function actualizarProveedor(id, dto) {
 }
 
 /**
- * Desactiva un proveedor. Borrado LÓGICO (activo = false), nunca físico:
- * Medicamentos tiene una FK id_proveedor hacia nuestra tabla.
+ * Elimina un proveedor.
  * @param {string} id - UUID ya validado.
  * @returns {Promise<void>}
  * @throws {NotFoundError} 404 si el id no existe.
+ * @throws {ConflictError} 409 si tiene medicamentos asociados.
  */
-async function desactivarProveedor(id) {
-  const desactivado = await model.desactivar(id);
-  if (!desactivado) {
-    throw new NotFoundError('El proveedor no existe');
+async function eliminarProveedor(id) {
+  try {
+    const eliminado = await model.eliminar(id);
+    if (!eliminado) {
+      throw new NotFoundError('El proveedor no existe');
+    }
+  } catch (error) {
+    // 23503 = foreign_key_violation. errors.js ya lo traduce a 409, pero aquí
+    // se le da un mensaje concreto: el usuario necesita saber POR QUÉ no pudo.
+    if (error && error.code === '23503') {
+      throw new ConflictError(
+        'No se puede eliminar el proveedor porque tiene medicamentos asociados'
+      );
+    }
+    throw error;
   }
 }
 
@@ -114,5 +127,5 @@ module.exports = {
   listarProveedores,
   obtenerProveedor,
   actualizarProveedor,
-  desactivarProveedor,
+  eliminarProveedor,
 };

@@ -1,17 +1,16 @@
 // frontend/src/modules/proveedores/proveedores.api.js
 //
-// NOTA DE OWNERSHIP: según la Fase 2 del plan, este archivo es responsabilidad
-// de A (`proveedores.api.js` — capa de llamadas HTTP). Te lo doy aquí para que
-// puedas levantar y probar tu ProveedoresPage.jsx ya mismo, pero avísale a A
-// para que lo revise/asuma como suyo antes de la PR final — no lo subas como
-// si fuera tuyo.
+// Unico lugar del modulo que habla con el backend.
 //
-// Envuelve fetch() contra los endpoints reales del módulo Proveedores y
-// devuelve siempre datos ya "desempacados" (o lanza un Error con .statusCode
-// y .errores para que la UI decida qué mostrar).
+// VITE_API_URL ya incluye el prefijo /api, igual que en el resto de los modulos
+// y que en frontend/.env.example. Antes este archivo asumia lo contrario y
+// terminaba armando /api/api/proveedores en cuanto alguien creaba su .env.
+//
+// Devuelve siempre datos ya "desempacados", o lanza un Error con .statusCode y
+// .errores para que la UI decida que mostrar.
 
-const API_BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
-const RECURSO = `${API_BASE_URL}/api/proveedores`;
+const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api';
+const RECURSO = `${API_URL}/proveedores`;
 
 /**
  * Lanza un Error enriquecido a partir de una respuesta { ok:false, ... }
@@ -32,7 +31,7 @@ async function solicitar(url, opciones = {}) {
       headers: { 'Content-Type': 'application/json' },
       ...opciones,
     });
-  } catch (redError) {
+  } catch {
     // Fallo de red real (servidor caído, sin conexión, CORS, etc.)
     const error = new Error('No se pudo conectar con el servidor');
     error.statusCode = 0;
@@ -40,73 +39,62 @@ async function solicitar(url, opciones = {}) {
     throw error;
   }
 
-  // 204 / DELETE sin cuerpo (por si acaso; hoy el backend siempre responde JSON)
   const cuerpo = respuesta.status === 204 ? null : await respuesta.json();
 
   if (!respuesta.ok || cuerpo?.ok === false) {
     throw errorDesdeRespuesta(respuesta.status, cuerpo);
   }
 
-  return cuerpo.datos;
+  return cuerpo;
 }
 
 /**
- * Lista proveedores.
- * @param {{ pagina?: number, limite?: number, busqueda?: string, activo?: boolean|'todos' }} filtros
+ * Lista proveedores paginados.
+ * El backend responde { datos: [...], meta: { total, pagina, limite } };
+ * aquí se aplana para que el componente reciba una sola forma consistente.
+ * @param {{ pagina?: number, limite?: number, busqueda?: string }} filtros
  * @returns {Promise<{ datos: object[], total: number, pagina: number, limite: number }>}
- *
- * OJO: el backend responde { datos: [...], meta: { total, pagina, limite } },
- * no { datos, total, pagina, limite } todo junto. Aquí lo aplanamos para que
- * el componente reciba una sola forma consistente.
  */
-async function listarProveedores({ pagina = 1, limite = 10, busqueda, activo } = {}) {
+async function listarProveedores({ pagina = 1, limite = 10, busqueda } = {}) {
   const params = new URLSearchParams();
   params.set('pagina', pagina);
   params.set('limite', limite);
   if (busqueda) params.set('busqueda', busqueda);
-  if (activo !== undefined) params.set('activo', activo);
 
-  let respuesta;
-  try {
-    respuesta = await fetch(`${RECURSO}?${params.toString()}`);
-  } catch {
-    const error = new Error('No se pudo conectar con el servidor');
-    error.statusCode = 0;
-    error.errores = [];
-    throw error;
-  }
-
-  const cuerpo = await respuesta.json();
-  if (!respuesta.ok || cuerpo?.ok === false) {
-    throw errorDesdeRespuesta(respuesta.status, cuerpo);
-  }
+  const cuerpo = await solicitar(`${RECURSO}?${params.toString()}`);
 
   return {
-    datos: cuerpo.datos,
-    total: cuerpo.meta?.total ?? cuerpo.datos.length,
+    datos: cuerpo.datos ?? [],
+    total: cuerpo.meta?.total ?? (cuerpo.datos?.length || 0),
     pagina: cuerpo.meta?.pagina ?? pagina,
     limite: cuerpo.meta?.limite ?? limite,
   };
 }
 
 /** @returns {Promise<object>} */
-function obtenerProveedor(id) {
-  return solicitar(`${RECURSO}/${id}`);
+async function obtenerProveedor(id) {
+  const cuerpo = await solicitar(`${RECURSO}/${id}`);
+  return cuerpo.datos;
 }
 
 /** @returns {Promise<object>} */
-function crearProveedor(datos) {
-  return solicitar(RECURSO, { method: 'POST', body: JSON.stringify(datos) });
+async function crearProveedor(datos) {
+  const cuerpo = await solicitar(RECURSO, { method: 'POST', body: JSON.stringify(datos) });
+  return cuerpo.datos;
 }
 
 /** @returns {Promise<object>} */
-function actualizarProveedor(id, datos) {
-  return solicitar(`${RECURSO}/${id}`, { method: 'PUT', body: JSON.stringify(datos) });
+async function actualizarProveedor(id, datos) {
+  const cuerpo = await solicitar(`${RECURSO}/${id}`, { method: 'PUT', body: JSON.stringify(datos) });
+  return cuerpo.datos;
 }
 
-/** Borrado lógico. @returns {Promise<null>} */
-function desactivarProveedor(id) {
-  return solicitar(`${RECURSO}/${id}`, { method: 'DELETE' });
+/**
+ * Borrado fisico. El backend responde 409 si el proveedor tiene medicamentos
+ * asociados; ese mensaje llega en error.message.
+ */
+async function eliminarProveedor(id) {
+  await solicitar(`${RECURSO}/${id}`, { method: 'DELETE' });
 }
 
 export {
@@ -114,5 +102,5 @@ export {
   obtenerProveedor,
   crearProveedor,
   actualizarProveedor,
-  desactivarProveedor,
+  eliminarProveedor,
 };

@@ -39,7 +39,7 @@ router.post(
   controller.crear
 );
 
-// GET /api/proveedores?pagina=&limite=&busqueda=&activo=
+// GET /api/proveedores?pagina=&limite=&busqueda=
 router.get(
   '/',
   validator.validarListar,
@@ -62,11 +62,11 @@ router.put(
 );
 
 // DELETE /api/proveedores/:id
-// Borrado lógico
+// Borrado fisico: la tabla no tiene columna activo.
 router.delete(
   '/:id',
   validator.validarIdParam,
-  controller.desactivar
+  controller.eliminar
 );
 
 // -----------------------------------------------------------------------------

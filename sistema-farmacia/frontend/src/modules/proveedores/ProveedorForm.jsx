@@ -1,33 +1,22 @@
 // frontend/src/modules/proveedores/ProveedorForm.jsx
 //
-// NOTA DE OWNERSHIP: según la Fase 2 del plan, este archivo es responsabilidad
-// de C (formulario de crear/editar, en modal). Te lo doy para que tu
-// ProveedoresPage.jsx tenga el flujo completo mientras C lo entrega — avísale
-// para que lo revise/asuma como suyo antes de la PR final, no lo subas como
-// si fuera tuyo.
+// Modal de crear/editar proveedor.
+//
+// La tabla proveedores solo tiene nombre y contacto, asi que el formulario pide
+// unicamente esos dos campos. Valida en el cliente los mismos limites que aplica
+// proveedores.validator.js en el backend, pero el servidor sigue siendo la
+// fuente de verdad: si igual falla alla, se muestran sus errores por campo.
 //
 // Reglas del CONTRATO.md §7 aplicadas: fondo blanco, bordes rounded-lg/xl,
-// botón primario azul, botón secundario blanco con borde gris.
-//
-// Valida en el cliente los mismos límites que ya aplica
-// proveedores.validator.js en el backend (nombre 2–150, teléfono, email),
-// para no depender solo del error 400 del servidor — pero el servidor sigue
-// siendo la fuente de verdad: si igual falla allá, se muestran esos errores.
+// boton primario azul, boton secundario blanco con borde gris.
 
 import { useEffect, useState } from 'react';
-import { X } from 'lucide-react';
 import { crearProveedor, actualizarProveedor } from './proveedores.api';
 
 const CAMPOS_VACIOS = {
   nombre: '',
   contacto: '',
-  telefono: '',
-  email: '',
-  direccion: '',
 };
-
-const RE_EMAIL = /^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/;
-const RE_TELEFONO = /^\+?[\d][\d\s()-]{6,19}$/;
 
 function validarCliente(valores) {
   const errores = {};
@@ -39,12 +28,8 @@ function validarCliente(valores) {
     errores.nombre = 'Debe tener entre 2 y 150 caracteres';
   }
 
-  if (valores.telefono.trim() && !RE_TELEFONO.test(valores.telefono.trim())) {
-    errores.telefono = 'Formato inválido (mínimo 8 dígitos)';
-  }
-
-  if (valores.email.trim() && !RE_EMAIL.test(valores.email.trim())) {
-    errores.email = 'Formato de email inválido';
+  if (valores.contacto.trim().length > 100) {
+    errores.contacto = 'No puede exceder 100 caracteres';
   }
 
   return errores;
@@ -70,9 +55,6 @@ export default function ProveedorForm({ proveedor, onCerrar, onGuardado }) {
       setValores({
         nombre: proveedor.nombre ?? '',
         contacto: proveedor.contacto ?? '',
-        telefono: proveedor.telefono ?? '',
-        email: proveedor.email ?? '',
-        direccion: proveedor.direccion ?? '',
       });
     } else {
       setValores(CAMPOS_VACIOS);
@@ -87,17 +69,15 @@ export default function ProveedorForm({ proveedor, onCerrar, onGuardado }) {
   }
 
   function construirPayload() {
-    // Igual que el validator del backend: string vacío -> no se manda (crear)
-    // o se manda como null para limpiar el campo (editar).
+    // Igual que el validator del backend: al crear, un contacto vacío no se
+    // manda; al editar, se manda null para limpiarlo.
     const payload = { nombre: valores.nombre.trim() };
-    ['contacto', 'telefono', 'email', 'direccion'].forEach((campo) => {
-      const valor = valores[campo].trim();
-      if (esEdicion) {
-        payload[campo] = valor || null;
-      } else if (valor) {
-        payload[campo] = valor;
-      }
-    });
+    const contacto = valores.contacto.trim();
+    if (esEdicion) {
+      payload.contacto = contacto || null;
+    } else if (contacto) {
+      payload.contacto = contacto;
+    }
     return payload;
   }
 
@@ -140,44 +120,50 @@ export default function ProveedorForm({ proveedor, onCerrar, onGuardado }) {
 
   function claseInput(campo) {
     const base =
-      'w-full px-3 py-2 border rounded-md text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent';
+      'w-full px-4 py-2.5 bg-gray-50 border rounded-lg text-base text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors placeholder:text-gray-400';
     return mensajeDeCampo(campo) ? `${base} border-red-400` : `${base} border-gray-300`;
   }
 
   return (
-    <div className="fixed inset-0 bg-black/30 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-xl shadow-sm w-full max-w-md">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
-          <h2 className="text-base font-semibold text-gray-800">
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 w-full max-w-md">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+          <h2 className="text-xl font-semibold text-gray-800">
             {esEdicion ? 'Editar proveedor' : 'Nuevo proveedor'}
           </h2>
           <button
             type="button"
             onClick={onCerrar}
-            className="text-gray-500 hover:text-gray-800 transition-colors"
+            disabled={guardando}
+            className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-lg hover:bg-gray-100 disabled:opacity-50"
             aria-label="Cerrar"
           >
-            <X size={18} />
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
           </button>
         </div>
 
-        <form onSubmit={manejarSubmit} className="px-5 py-4 space-y-4">
+        <form onSubmit={manejarSubmit} className="px-6 py-5 space-y-4">
           {mensajeError && (
-            <div className="bg-amber-100 text-amber-700 text-sm rounded-lg px-3 py-2">
+            <div className="bg-red-100 text-red-700 border border-red-200 rounded-lg px-4 py-3 text-sm">
               {mensajeError}
             </div>
           )}
 
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">
-              Nombre *
+            <label htmlFor="nombre" className="block text-sm font-medium text-gray-700 mb-1.5">
+              Nombre <span className="text-red-500">*</span>
             </label>
             <input
+              id="nombre"
               type="text"
               value={valores.nombre}
               onChange={(e) => actualizarCampo('nombre', e.target.value)}
+              placeholder="Ej. Laboratorios Roche"
               className={claseInput('nombre')}
               maxLength={150}
+              disabled={guardando}
             />
             {mensajeDeCampo('nombre') && (
               <p className="text-xs text-red-600 mt-1">{mensajeDeCampo('nombre')}</p>
@@ -185,76 +171,37 @@ export default function ProveedorForm({ proveedor, onCerrar, onGuardado }) {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">Contacto</label>
+            <label htmlFor="contacto" className="block text-sm font-medium text-gray-700 mb-1.5">
+              Contacto
+            </label>
             <input
+              id="contacto"
               type="text"
               value={valores.contacto}
               onChange={(e) => actualizarCampo('contacto', e.target.value)}
+              placeholder="Ej. ventas@roche.test"
               className={claseInput('contacto')}
               maxLength={100}
+              disabled={guardando}
             />
             {mensajeDeCampo('contacto') && (
               <p className="text-xs text-red-600 mt-1">{mensajeDeCampo('contacto')}</p>
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">Teléfono</label>
-              <input
-                type="text"
-                value={valores.telefono}
-                onChange={(e) => actualizarCampo('telefono', e.target.value)}
-                className={claseInput('telefono')}
-                maxLength={20}
-              />
-              {mensajeDeCampo('telefono') && (
-                <p className="text-xs text-red-600 mt-1">{mensajeDeCampo('telefono')}</p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">Email</label>
-              <input
-                type="email"
-                value={valores.email}
-                onChange={(e) => actualizarCampo('email', e.target.value)}
-                className={claseInput('email')}
-                maxLength={150}
-              />
-              {mensajeDeCampo('email') && (
-                <p className="text-xs text-red-600 mt-1">{mensajeDeCampo('email')}</p>
-              )}
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">Dirección</label>
-            <textarea
-              value={valores.direccion}
-              onChange={(e) => actualizarCampo('direccion', e.target.value)}
-              className={`${claseInput('direccion')} resize-none`}
-              rows={2}
-              maxLength={500}
-            />
-            {mensajeDeCampo('direccion') && (
-              <p className="text-xs text-red-600 mt-1">{mensajeDeCampo('direccion')}</p>
-            )}
-          </div>
-
-          <div className="flex justify-end gap-2 pt-2">
+          <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
             <button
               type="button"
               onClick={onCerrar}
               disabled={guardando}
-              className="bg-white border border-gray-300 text-gray-700 rounded-md px-4 py-2 text-sm hover:bg-gray-50 transition-colors disabled:opacity-50"
+              className="bg-white border border-gray-300 text-gray-700 rounded-md px-4 py-2 hover:bg-gray-50 transition-colors disabled:opacity-50"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={guardando}
-              className="bg-blue-600 text-white rounded-md px-4 py-2 text-sm hover:bg-blue-700 transition-colors disabled:opacity-50"
+              className="bg-blue-600 text-white rounded-md px-4 py-2 hover:bg-blue-700 transition-colors disabled:opacity-50"
             >
               {guardando ? 'Guardando...' : esEdicion ? 'Guardar cambios' : 'Crear proveedor'}
             </button>

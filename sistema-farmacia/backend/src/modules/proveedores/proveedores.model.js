@@ -1,118 +1,158 @@
 'use strict';
 
 /**
- * proveedores.service.js — LÓGICA DE NEGOCIO
+ * proveedores.model.js — ACCESO A DATOS
  *
  * REGLAS DE ESTA CAPA (README del repo):
- *   - No conoce Express: nada de req ni res en este archivo.
- *   - Solo llama al model (la siguiente capa), nunca al controller.
- *   - Lanza errores de DOMINIO (NotFoundError, ConflictError).
- *     La traducción a códigos HTTP la hace proveedores.errors.js.
+ *   - Unica capa que habla con Supabase / PostgreSQL.
+ *   - Sin logica de negocio y sin conocer Express: nada de req ni res.
+ *   - Devuelve datos crudos o null; los errores de dominio los lanza el service.
  *
- * FIRMAS CONGELADAS: el controller y otros equipos ya dependen de estos
- * nombres. No renombrar sin avisar al equipo completo.
+ * COLUMNAS REALES DE LA TABLA (CONTRATO.md seccion 3):
+ *   id_proveedor (PK, UUID) | nombre | contacto | created_at
+ *
+ * No existen las columnas telefono, email, direccion ni activo. Por eso el
+ * modulo no hace borrado logico: el DELETE es fisico y la integridad la protege
+ * la llave foranea de Medicamentos, que PostgreSQL rechaza con el codigo 23503.
  */
 
-const model = require('./proveedores.model');
-const { NotFoundError, ConflictError } = require('./proveedores.errors');
+const supabase = require('../../config/supabase');
+
+const TABLA = 'proveedores';
+
+/** Escapa los comodines de LIKE/ILIKE para que un nombre con % o _ no filtre de mas. */
+function escaparComodines(texto) {
+  return String(texto).replace(/[%_]/g, (m) => `\\${m}`);
+}
 
 /**
- * Crea un proveedor.
- * Regla de negocio: no puede haber dos proveedores ACTIVOS con el mismo nombre.
- * @param {object} dto - Datos ya validados y sanitizados por el validator.
+ * Lista proveedores paginados, con busqueda opcional por nombre.
+ * @param {{ pagina: number, limite: number, busqueda: string|null }} opciones
+ * @returns {Promise<{ datos: object[], total: number }>}
+ */
+async function obtenerTodos({ pagina = 1, limite = 10, busqueda = null } = {}) {
+  const desde = (pagina - 1) * limite;
+  const hasta = desde + limite - 1;
+
+  let consulta = supabase
+    .from(TABLA)
+    .select('*', { count: 'exact' })
+    .order('nombre', { ascending: true })
+    .range(desde, hasta);
+
+  if (busqueda) {
+    consulta = consulta.ilike('nombre', `%${escaparComodines(busqueda)}%`);
+  }
+
+  const { data, error, count } = await consulta;
+  if (error) throw error;
+
+  return { datos: data || [], total: count || 0 };
+}
+
+/**
+ * @param {string} id - UUID.
+ * @returns {Promise<object|null>} null si no existe.
+ */
+async function obtenerPorId(id) {
+  const { data, error } = await supabase
+    .from(TABLA)
+    .select('*')
+    .eq('id_proveedor', id)
+    .single();
+
+  if (error) {
+    if (error.code === 'PGRST116') return null; // no encontrado, no es un error real
+    throw error;
+  }
+  return data;
+}
+
+/**
+ * Indica si el nombre ya esta tomado. La comparacion es insensible a
+ * mayusculas: "Farmacia Sur" y "farmacia sur" cuentan como el mismo proveedor.
+ * @param {string} nombre
+ * @param {string} [idExcluir] - Id a ignorar, para no chocar consigo mismo al editar.
+ * @returns {Promise<boolean>}
+ */
+async function existePorNombre(nombre, idExcluir) {
+  let consulta = supabase
+    .from(TABLA)
+    .select('id_proveedor')
+    .ilike('nombre', escaparComodines(nombre));
+
+  if (idExcluir) {
+    consulta = consulta.neq('id_proveedor', idExcluir);
+  }
+
+  const { data, error } = await consulta;
+  if (error) throw error;
+
+  return (data || []).length > 0;
+}
+
+/**
+ * @param {{ nombre: string, contacto: string|null }} datos
  * @returns {Promise<object>}
- * @throws {ConflictError} 409 si el nombre ya está tomado por un activo.
  */
-async function crearProveedor(dto) {
-  const duplicado = await model.existePorNombre(dto.nombre);
-  if (duplicado) {
-    throw new ConflictError('Ya existe un proveedor activo con ese nombre');
-  }
-  return model.crear(dto);
+async function crear(datos) {
+  const { data, error } = await supabase
+    .from(TABLA)
+    .insert(datos)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
 }
 
 /**
- * Lista proveedores con paginación.
- * El model devuelve { datos, total }; aquí se le agregan pagina y limite
- * porque el controller los necesita para armar el bloque meta.
- * @param {object} [query] - Ya normalizado por validarListar.
- * @returns {Promise<{ datos: object[], total: number, pagina: number, limite: number }>}
+ * @param {string} id - UUID.
+ * @param {object} cambios - Solo las columnas a modificar.
+ * @returns {Promise<object|null>} null si el id no existe.
  */
-async function listarProveedores(query = {}) {
-  const {
-    pagina = 1,
-    limite = 10,
-    busqueda = null,
-    activo = true, // null = activos e inactivos
-  } = query;
+async function actualizar(id, cambios) {
+  const { data, error } = await supabase
+    .from(TABLA)
+    .update(cambios)
+    .eq('id_proveedor', id)
+    .select()
+    .single();
 
-  const { datos, total } = await model.obtenerTodos({ pagina, limite, busqueda, activo });
-
-  return { datos, total, pagina, limite };
+  if (error) {
+    if (error.code === 'PGRST116') return null;
+    throw error;
+  }
+  return data;
 }
 
 /**
- * Obtiene un proveedor por su id.
- * @param {string} id - UUID ya validado.
- * @returns {Promise<object>}
- * @throws {NotFoundError} 404 si no existe.
+ * Borrado fisico. Si el proveedor tiene medicamentos asociados, PostgreSQL
+ * rechaza el DELETE con el codigo 23503 y el error se propaga al service.
+ * @param {string} id - UUID.
+ * @returns {Promise<object|null>} null si el id no existe.
  */
-async function obtenerProveedor(id) {
-  const proveedor = await model.obtenerPorId(id);
-  if (!proveedor) {
-    throw new NotFoundError('El proveedor no existe');
-  }
-  return proveedor;
-}
+async function eliminar(id) {
+  const { data, error } = await supabase
+    .from(TABLA)
+    .delete()
+    .eq('id_proveedor', id)
+    .select()
+    .single();
 
-/**
- * Actualiza un proveedor.
- * Si cambia el nombre, se revalida la unicidad excluyendo el propio registro
- * (si no, actualizar un proveedor sin tocar el nombre chocaría consigo mismo).
- * @param {string} id - UUID ya validado.
- * @param {object} dto - Solo los campos a modificar.
- * @returns {Promise<object>}
- * @throws {NotFoundError} 404 · {ConflictError} 409
- */
-async function actualizarProveedor(id, dto) {
-  const existente = await model.obtenerPorId(id);
-  if (!existente) {
-    throw new NotFoundError('El proveedor no existe');
+  if (error) {
+    if (error.code === 'PGRST116') return null;
+    throw error;
   }
-
-  if (dto.nombre) {
-    const duplicado = await model.existePorNombre(dto.nombre, id);
-    if (duplicado) {
-      throw new ConflictError('Ya existe otro proveedor activo con ese nombre');
-    }
-  }
-
-  const actualizado = await model.actualizar(id, dto);
-  if (!actualizado) {
-    // Carrera improbable: alguien lo borró entre la lectura y la escritura.
-    throw new NotFoundError('El proveedor no existe');
-  }
-  return actualizado;
-}
-
-/**
- * Desactiva un proveedor. Borrado LÓGICO (activo = false), nunca físico:
- * Medicamentos tiene una FK id_proveedor hacia nuestra tabla.
- * @param {string} id - UUID ya validado.
- * @returns {Promise<void>}
- * @throws {NotFoundError} 404 si el id no existe.
- */
-async function desactivarProveedor(id) {
-  const desactivado = await model.desactivar(id);
-  if (!desactivado) {
-    throw new NotFoundError('El proveedor no existe');
-  }
+  return data;
 }
 
 module.exports = {
-  crearProveedor,
-  listarProveedores,
-  obtenerProveedor,
-  actualizarProveedor,
-  desactivarProveedor,
+  TABLA,
+  obtenerTodos,
+  obtenerPorId,
+  existePorNombre,
+  crear,
+  actualizar,
+  eliminar,
 };

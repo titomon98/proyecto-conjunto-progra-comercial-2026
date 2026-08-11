@@ -8,14 +8,11 @@
  * Los otros 6 equipos consumen SOLO lo que se exporta aquí. Nadie importa
  * nuestro service ni nuestro model directamente (regla del README).
  *
- * Los nombres de abajo son los del contrato acordado con el grupo. Renombrarlos
- * rompe al módulo de Medicamentos, que usa existeProveedor para validar su FK.
- *
  * Todo lo que se expone aquí es de SOLO LECTURA: ningún módulo externo crea,
- * actualiza ni desactiva proveedores. Eso pasa únicamente por nuestros endpoints.
+ * actualiza ni elimina proveedores. Eso pasa únicamente por nuestros endpoints.
  */
 
-const proveedoresRouter = require('./proveedores.routes');
+const router = require('./proveedores.routes');
 const service = require('./proveedores.service');
 const { NotFoundError } = require('./proveedores.errors');
 
@@ -37,7 +34,7 @@ async function obtenerProveedorPorId(id) {
 }
 
 /**
- * Indica si un proveedor existe. Lo usa Medicamentos para validar su FK
+ * Indica si un proveedor existe. Pensado para que Medicamentos valide su FK
  * id_proveedor antes de insertar.
  * @param {string} id - UUID.
  * @returns {Promise<boolean>}
@@ -48,28 +45,20 @@ async function existeProveedor(id) {
 }
 
 /**
- * Devuelve todos los proveedores activos, sin paginar.
+ * Devuelve todos los proveedores, sin paginar.
  * Pensado para poblar selects y catálogos en otros módulos.
  * El límite alto es intencional: un catálogo de proveedores de farmacia no
  * llega a esos números. Si algún día lo hace, hay que paginar aquí.
  * @returns {Promise<object[]>}
  */
-async function listarProveedoresActivos() {
-  const { datos } = await service.listarProveedores({
-    pagina: 1,
-    limite: 1000,
-    activo: true,
-  });
+async function listarTodos() {
+  const { datos } = await service.listarProveedores({ pagina: 1, limite: 1000 });
   return datos;
 }
 
 module.exports = {
-  proveedoresRouter,
+  router,
   obtenerProveedorPorId,
   existeProveedor,
-  listarProveedoresActivos,
-
-  // Alias temporal: algún equipo pudo haber escrito `.router` leyendo el
-  // esqueleto. Se puede quitar cuando se confirme que nadie lo usa.
-  router: proveedoresRouter,
+  listarTodos,
 };

@@ -32,7 +32,7 @@ Base: `/api/proveedores`
 | GET | `/` | Listar con paginación y búsqueda | 200 · 400 |
 | GET | `/:id` | Obtener uno por UUID | 200 · 400 · 404 |
 | PUT | `/:id` | Actualizar | 200 · 400 · 404 · 409 |
-| DELETE | `/:id` | Desactivar (**borrado lógico**) | 200 · 400 · 404 |
+| DELETE | `/:id` | Eliminar (**borrado físico**) | 200 · 400 · 404 · 409 |
 
 ### Query params de `GET /`
 
@@ -40,8 +40,7 @@ Base: `/api/proveedores`
 |---|---|---|---|
 | `pagina` | entero | `1` | ≥ 1 |
 | `limite` | entero | `10` | ≥ 1, **tope duro 100** |
-| `busqueda` | texto | — | máx. 100 caracteres, se escapan `%` y `_` |
-| `activo` | `true` / `false` / `todos` | `true` | Por defecto solo se listan activos |
+| `busqueda` | texto | — | máx. 100 caracteres; filtra por nombre |
 
 ---
 
@@ -90,11 +89,12 @@ Todo el módulo responde con esta forma. **Los 4 integrantes la respetan.**
 |---|---|---|
 | `nombre` | Sí (en POST) | Texto, 2–150 caracteres, sanitizado |
 | `contacto` | No | Texto, máx. 100 |
-| `telefono` | No | 8–20 caracteres; dígitos, espacios, `-`, `()`, `+` inicial |
-| `email` | No | Formato válido, máx. 150, se normaliza a minúsculas |
-| `direccion` | No | Texto, máx. 500 |
 
-- Cualquier campo fuera de esa lista (`activo`, `id_proveedor`, `creado_en`, …) se **rechaza con 400**.
+> La tabla solo tiene `nombre` y `contacto`. Los campos `telefono`, `email` y
+> `direccion` que documentaba la versión anterior **no existen en la base** y hoy
+> se rechazan con 400.
+
+- Cualquier campo fuera de esa lista (`id_proveedor`, `created_at`, …) se **rechaza con 400**.
 - En `PUT` se exige **al menos un campo**; enviar `null` en un opcional lo limpia.
 - `:id` debe ser un **UUID válido** o la petición se corta con 400 antes de tocar la base.
 
@@ -114,9 +114,9 @@ const router = express.Router();
 
 router.post('/',       validator.validarCrear,                                controller.crear);
 router.get('/',        validator.validarListar,                               controller.listar);
-router.get('/:id',     validator.validarIdParam,                              controller.obtener);
+router.get('/:id',     validator.validarIdParam,                              controller.obtenerPorId);
 router.put('/:id',     validator.validarIdParam, validator.validarActualizar, controller.actualizar);
-router.delete('/:id',  validator.validarIdParam,                              controller.desactivar);
+router.delete('/:id',  validator.validarIdParam,                              controller.eliminar);
 
 // Siempre al final, en este orden:
 router.use(rutaNoEncontrada);
@@ -165,7 +165,7 @@ const { NotFoundError, ConflictError } = require('./proveedores.errors');
 
 if (!proveedor) throw new NotFoundError('El proveedor no existe');
 if (await model.existePorNombre(dto.nombre)) {
-  throw new ConflictError('Ya existe un proveedor activo con ese nombre');
+  throw new ConflictError('Ya existe un proveedor con ese nombre');
 }
 ```
 
@@ -185,7 +185,7 @@ const existe = await proveedores.existeProveedor(id_proveedor);
 if (!existe) { /* rechazar */ }
 
 // Datos para un <select> de proveedores
-const activos = await proveedores.listarProveedoresActivos();
+const lista = await proveedores.listarTodos();
 
 // Detalle de uno
 const proveedor = await proveedores.obtenerProveedorPorId(id_proveedor);
@@ -193,18 +193,22 @@ const proveedor = await proveedores.obtenerProveedorPorId(id_proveedor);
 
 | Export | Firma | Uso |
 |---|---|---|
-| `proveedoresRouter` | Router de Express | Se monta en `app.js` |
+| `router` | Router de Express | Se monta en `app.js` |
 | `obtenerProveedorPorId(id)` | `→ Proveedor \| null` | Lectura de detalle |
 | `existeProveedor(id)` | `→ boolean` | **Medicamentos** valida su FK |
-| `listarProveedoresActivos()` | `→ Proveedor[]` | Selects y catálogos |
+| `listarTodos()` | `→ Proveedor[]` | Selects y catálogos |
 
 **Ningún módulo escribe en la tabla `proveedores`.** La integración es solo por estos servicios.
 
 ---
 
-## 7. Nota crítica: el borrado es LÓGICO
+## 7. Nota crítica: el borrado es FÍSICO
 
-`DELETE /api/proveedores/:id` marca `activo = false`. **Nunca** hace `DELETE` físico, porque el módulo de Medicamentos tiene una FK `id_proveedor` hacia esta tabla y un borrado real rompería su módulo.
+La tabla real (`id_proveedor`, `nombre`, `contacto`, `created_at`) **no tiene columna `activo`**, así que no existe el borrado lógico: `DELETE /api/proveedores/:id` borra la fila.
+
+Quien protege la integridad es la llave foránea de Medicamentos. Si el proveedor tiene medicamentos asociados, PostgreSQL rechaza el DELETE con el código `23503` y el módulo responde **409** con el mensaje "No se puede eliminar el proveedor porque tiene medicamentos asociados".
+
+Si el grupo decide que hace falta desactivar en vez de borrar, hay que agregar la columna `activo` con una migración y restaurar la lógica anterior.
 
 ---
 

@@ -14,6 +14,10 @@
  *   - deja el resultado limpio en req.datosValidados / req.consultaValidada,
  *   - o llama next(new ValidationError(...)) con el detalle.
  *
+ * ALCANCE: la tabla proveedores solo tiene nombre y contacto como campos
+ * editables (ver proveedores.model.js). No se validan telefono, email,
+ * direccion ni activo porque esas columnas no existen en la base.
+ *
  * Importante: NO escribimos sobre req.query. En Express 5 req.query es un getter
  * de solo lectura, así que el resultado del listado va en req.consultaValidada.
  */
@@ -27,20 +31,19 @@ const { ValidationError } = require('./proveedores.errors');
 const LIMITES = {
   nombre: { min: 2, max: 150 },
   contacto: { max: 100 },
-  telefono: { min: 8, max: 20 },
-  email: { max: 150 },
-  direccion: { max: 500 },
   busqueda: { max: 100 },
   paginaDefault: 1,
   limiteDefault: 10,
   limiteMaximo: 100,
 };
 
-const CAMPOS_PERMITIDOS = ['nombre', 'contacto', 'telefono', 'email', 'direccion'];
+const CAMPOS_PERMITIDOS = ['nombre', 'contacto'];
 
-const RE_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-const RE_EMAIL = /^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/;
-const RE_TELEFONO = /^\+?[\d][\d\s()-]{6,19}$/;
+// Formato 8-4-4-4-12 sin exigir version ni variante RFC 4122: los UUID
+// sembrados en la base (c1111111-1111-1111-1111-111111111111) son validos como
+// identificadores aunque no cumplan el estandar al pie de la letra, y con la
+// expresion estricta anterior NINGUN proveedor existente era alcanzable.
+const RE_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 // ---------------------------------------------------------------------------
 // Utilidades internas
@@ -113,57 +116,7 @@ function validarContacto(valor, col) {
   return limpio;
 }
 
-function validarTelefono(valor, col) {
-  if (esVacio(valor)) return null;
-  if (typeof valor !== 'string' && typeof valor !== 'number') {
-    col.agregar('telefono', 'El teléfono debe ser texto');
-    return undefined;
-  }
-  const limpio = sanitizarTexto(String(valor));
-  if (limpio.length > LIMITES.telefono.max) {
-    col.agregar('telefono', `El teléfono no puede exceder ${LIMITES.telefono.max} caracteres`);
-    return undefined;
-  }
-  if (!RE_TELEFONO.test(limpio)) {
-    col.agregar('telefono', 'El teléfono solo admite dígitos, espacios, guiones, paréntesis y un + inicial (mínimo 8 dígitos)');
-    return undefined;
-  }
-  return limpio;
-}
-
-function validarEmail(valor, col) {
-  if (esVacio(valor)) return null;
-  if (typeof valor !== 'string') {
-    col.agregar('email', 'El email debe ser texto');
-    return undefined;
-  }
-  const limpio = sanitizarTexto(valor).toLowerCase();
-  if (limpio.length > LIMITES.email.max) {
-    col.agregar('email', `El email no puede exceder ${LIMITES.email.max} caracteres`);
-    return undefined;
-  }
-  if (!RE_EMAIL.test(limpio)) {
-    col.agregar('email', 'El formato del email no es válido');
-    return undefined;
-  }
-  return limpio;
-}
-
-function validarDireccion(valor, col) {
-  if (esVacio(valor)) return null;
-  if (typeof valor !== 'string') {
-    col.agregar('direccion', 'La dirección debe ser texto');
-    return undefined;
-  }
-  const limpio = sanitizarTexto(valor);
-  if (limpio.length > LIMITES.direccion.max) {
-    col.agregar('direccion', `La dirección no puede exceder ${LIMITES.direccion.max} caracteres`);
-    return undefined;
-  }
-  return limpio;
-}
-
-/** Rechaza campos que el cliente no tiene permitido enviar (activo, id, timestamps...). */
+/** Rechaza campos que el cliente no tiene permitido enviar (id, timestamps...). */
 function rechazarCamposNoPermitidos(body, col) {
   Object.keys(body).forEach((campo) => {
     if (!CAMPOS_PERMITIDOS.includes(campo)) {
@@ -192,9 +145,6 @@ function validarCrear(req, res, next) {
   const datos = {
     nombre: validarNombre(req.body.nombre, col, { obligatorio: true }),
     contacto: validarContacto(req.body.contacto, col),
-    telefono: validarTelefono(req.body.telefono, col),
-    email: validarEmail(req.body.email, col),
-    direccion: validarDireccion(req.body.direccion, col),
   };
 
   if (col.hayErrores) {
@@ -233,18 +183,6 @@ function validarActualizar(req, res, next) {
     const v = validarContacto(req.body.contacto, col);
     if (v !== undefined) datos.contacto = v;
   }
-  if (presentes.includes('telefono')) {
-    const v = validarTelefono(req.body.telefono, col);
-    if (v !== undefined) datos.telefono = v;
-  }
-  if (presentes.includes('email')) {
-    const v = validarEmail(req.body.email, col);
-    if (v !== undefined) datos.email = v;
-  }
-  if (presentes.includes('direccion')) {
-    const v = validarDireccion(req.body.direccion, col);
-    if (v !== undefined) datos.direccion = v;
-  }
 
   if (col.hayErrores) {
     return next(new ValidationError('No se pudo actualizar el proveedor: hay campos inválidos', col.lista));
@@ -256,9 +194,7 @@ function validarActualizar(req, res, next) {
 
 /**
  * GET /api/proveedores
- * Normaliza paginación y filtros. Resultado en req.consultaValidada.
- * Decisión: si no se envía "activo", por defecto se listan SOLO los activos,
- * porque la desactivación es nuestro equivalente al borrado.
+ * Normaliza paginación y búsqueda. Resultado en req.consultaValidada.
  */
 function validarListar(req, res, next) {
   const col = crearColector();
@@ -296,27 +232,18 @@ function validarListar(req, res, next) {
       if (limpio.length > LIMITES.busqueda.max) {
         col.agregar('busqueda', `La búsqueda no puede exceder ${LIMITES.busqueda.max} caracteres`);
       } else {
-        // Se escapan los comodines de LIKE/ILIKE para que no alteren el filtro.
-        busqueda = limpio.replace(/[%_]/g, (m) => `\\${m}`);
+        // Los comodines de LIKE/ILIKE los escapa el model, que es quien arma la
+        // consulta. Escaparlos aqui tambien duplicaria las barras invertidas.
+        busqueda = limpio;
       }
     }
-  }
-
-  // activo
-  let activo = true;
-  if (!esVacio(q.activo)) {
-    const v = String(q.activo).toLowerCase();
-    if (['true', '1', 'si', 'sí'].includes(v)) activo = true;
-    else if (['false', '0', 'no'].includes(v)) activo = false;
-    else if (['todos', 'all'].includes(v)) activo = null; // null = sin filtro
-    else col.agregar('activo', 'El parámetro activo admite: true, false o todos');
   }
 
   if (col.hayErrores) {
     return next(new ValidationError('Parámetros de consulta inválidos', col.lista));
   }
 
-  req.consultaValidada = { pagina, limite, busqueda, activo };
+  req.consultaValidada = { pagina, limite, busqueda };
   return next();
 }
 
@@ -344,6 +271,4 @@ module.exports = {
   CAMPOS_PERMITIDOS,
   sanitizarTexto,
   RE_UUID,
-  RE_EMAIL,
-  RE_TELEFONO,
 };
