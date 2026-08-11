@@ -17,3 +17,6 @@ npm-debug.log*
 # Editor / SO
 .DS_Store
 .vscode/
+
+# Instrucciones locales para Claude Code
+CLAUDE.md

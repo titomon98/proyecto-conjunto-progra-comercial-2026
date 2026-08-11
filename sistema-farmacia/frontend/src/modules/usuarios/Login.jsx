@@ -7,9 +7,9 @@ export default function Login({ onLoginSuccess }) {
   const [isRegistering, setIsRegistering] = useState(false);
 
   
+  // La tabla usuarios solo tiene email, password y rol: no se pide nombre.
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [nombre, setNombre] = useState('');
   const [confirmarPassword, setConfirmarPassword] = useState('');
 
   // ── Estado de UI ──
@@ -21,7 +21,6 @@ export default function Login({ onLoginSuccess }) {
     setIsRegistering(!isRegistering);
     setEmail('');
     setPassword('');
-    setNombre('');
     setConfirmarPassword('');
     setMensaje({ texto: '', tipo: '' });
   };
@@ -76,7 +75,7 @@ export default function Login({ onLoginSuccess }) {
     e.preventDefault();
     setMensaje({ texto: '', tipo: '' });
 
-    if (!nombre.trim() || !email.trim() || !password.trim() || !confirmarPassword.trim()) {
+    if (!email.trim() || !password.trim() || !confirmarPassword.trim()) {
       setMensaje({ texto: 'Por favor completa todos los campos.', tipo: 'error' });
       return;
     }
@@ -86,17 +85,12 @@ export default function Login({ onLoginSuccess }) {
       return;
     }
 
-    if (password.length < 6) {
-      setMensaje({ texto: 'La contraseña debe tener al menos 6 caracteres.', tipo: 'error' });
-      return;
-    }
-
     setLoading(true);
     try {
       const res = await fetch(`${API_URL}/usuarios/registro`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nombre, email, password }),
+        body: JSON.stringify({ email, password }),
       });
 
       const data = await res.json();
@@ -109,7 +103,6 @@ export default function Login({ onLoginSuccess }) {
 
       setTimeout(() => {
         setIsRegistering(false);
-        setNombre('');
         setConfirmarPassword('');
         setMensaje({ texto: '', tipo: '' });
       }, 1500);
@@ -165,24 +158,6 @@ export default function Login({ onLoginSuccess }) {
 
           {/* ── Formulario ── */}
           <form onSubmit={isRegistering ? handleRegistro : handleLogin} className="space-y-5">
-            {/* Campo Nombre (solo en registro) */}
-            {isRegistering && (
-              <div>
-                <label htmlFor="nombre" className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Nombre completo
-                </label>
-                <input
-                  type="text"
-                  id="nombre"
-                  name="nombre"
-                  value={nombre}
-                  onChange={(e) => setNombre(e.target.value)}
-                  placeholder="Ej. María López"
-                  className="w-full px-4 py-2.5 text-base text-gray-800 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors placeholder:text-gray-400"
-                />
-              </div>
-            )}
-
             {/* Campo Email */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1.5">

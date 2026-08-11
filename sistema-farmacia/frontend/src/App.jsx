@@ -65,18 +65,19 @@ export default function App() {
 
           {/* Info de usuario + Cerrar sesión */}
           <div className="flex items-center gap-4">
+            {/* La tabla usuarios no tiene columna nombre: se identifica por email. */}
             <div className="text-right hidden sm:block">
               <p className="text-sm font-medium text-gray-800">
-                {usuarioActual?.nombre || 'Usuario'}
+                {usuarioActual?.email || 'Usuario'}
               </p>
               <p className="text-xs text-gray-500">
-                {usuarioActual?.rol || 'admin'}
+                {usuarioActual?.rol || 'Sin rol'}
               </p>
             </div>
 
             {/* Avatar */}
             <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-semibold">
-              {(usuarioActual?.nombre || 'U').charAt(0).toUpperCase()}
+              {(usuarioActual?.email || 'U').charAt(0).toUpperCase()}
             </div>
 
             {/* Botón cerrar sesión */}
