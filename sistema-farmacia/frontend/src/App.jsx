@@ -9,6 +9,7 @@ import { VentasPage } from './modules/ventas';
 import { ProveedoresPage } from './modules/proveedores';
 import { InventarioView } from './modules/inventario';
 import { ClientesView } from './modules/clientes';
+import { ReportesPage } from './modules/reportes';
 
 // Modulos con pantalla enlazada en la navegacion. Al integrar un modulo nuevo
 // se agrega aqui y se renderiza mas abajo, en el <main>.
@@ -18,6 +19,7 @@ const MODULOS = [
   { id: 'inventario', texto: 'Inventario' },
   { id: 'clientes', texto: 'Clientes' },
   { id: 'ventas', texto: 'Ventas' },
+  { id: 'reportes', texto: 'Reportes' },
   { id: 'usuarios', texto: 'Usuarios' },
 ];
 
@@ -181,6 +183,7 @@ export default function App() {
         {moduloActivo === 'inventario' && <InventarioView />}
         {moduloActivo === 'clientes' && <ClientesView />}
         {moduloActivo === 'ventas' && <VentasPage usuario={usuarioActual} />}
+        {moduloActivo === 'reportes' && <ReportesPage />}
         {moduloActivo === 'usuarios' && <Usuarios onLogout={handleLogout} />}
       </main>
     </div>

@@ -1,25 +1,60 @@
 // Model del modulo reportes.
 // Responsabilidad: acceso a datos. Unica capa que habla directamente con
-// Supabase / PostgreSQL para la(s) tabla(s) de este modulo.
+// Supabase / PostgreSQL para consultas de solo lectura.
 
-const TABLA = 'reportes';
+const supabase = require('../../config/supabase');
 
-// TODO (equipo reportes): implementar las consultas del modulo.
-const findAll = async () => {};
+const obtenerVentasPorPeriodo = async (fechaInicio, fechaFin) => {
+  const { data, error } = await supabase
+    .from('ventas')
+    .select(`
+      id_venta,
+      fecha,
+      total,
+      clientes (
+        id_cliente,
+        nombre
+      ),
+      detalle_ventas (
+        cantidad
+      )
+    `)
+    .gte('fecha', fechaInicio)
+    .lte('fecha', fechaFin)
+    .order('fecha', { ascending: true });
 
-const findById = async (id) => {};
+  if (error) throw error;
+  return data;
+};
 
-const insert = async (datos) => {};
+const obtenerVentasParaReporteClientes = async (fechaInicio, fechaFin) => {
+  let query = supabase
+    .from('ventas')
+    .select(`
+      id_venta,
+      fecha,
+      total,
+      id_cliente,
+      clientes (
+        id_cliente,
+        nombre
+      ),
+      detalle_ventas (
+        cantidad
+      )
+    `)
+    .order('fecha', { ascending: false });
 
-const update = async (id, datos) => {};
+  if (fechaInicio) query = query.gte('fecha', fechaInicio);
+  if (fechaFin) query = query.lte('fecha', fechaFin);
 
-const remove = async (id) => {};
+  const { data, error } = await query;
+
+  if (error) throw error;
+  return data;
+};
 
 module.exports = {
-  TABLA,
-  findAll,
-  findById,
-  insert,
-  update,
-  remove,
+  obtenerVentasPorPeriodo,
+  obtenerVentasParaReporteClientes,
 };

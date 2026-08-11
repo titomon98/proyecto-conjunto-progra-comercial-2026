@@ -2,21 +2,41 @@
 // Responsabilidad: leer la peticion (req), validar la entrada, llamar al service
 // y devolver la respuesta (res). No debe contener logica de negocio.
 
-// TODO (equipo reportes): implementar los handlers del modulo.
-const listar = async (req, res) => {};
+const reportesService = require('./reportes.service');
 
-const obtenerPorId = async (req, res) => {};
+const ventasPorPeriodo = async (req, res) => {
+  try {
+    const reporte = await reportesService.generarReporteVentas(req.query);
 
-const crear = async (req, res) => {};
+    return res.status(200).json({
+      success: true,
+      data: reporte,
+    });
+  } catch (error) {
+    return res.status(error.status || 500).json({
+      success: false,
+      message: error.message || 'Error al generar el reporte de ventas.',
+    });
+  }
+};
 
-const actualizar = async (req, res) => {};
+const ventasPorCliente = async (req, res) => {
+  try {
+    const reporte = await reportesService.generarReporteVentasPorCliente(req.query);
 
-const eliminar = async (req, res) => {};
+    return res.status(200).json({
+      success: true,
+      data: reporte,
+    });
+  } catch (error) {
+    return res.status(error.status || 500).json({
+      success: false,
+      message: error.message || 'Error al generar el reporte de ventas por cliente.',
+    });
+  }
+};
 
 module.exports = {
-  listar,
-  obtenerPorId,
-  crear,
-  actualizar,
-  eliminar,
+  ventasPorPeriodo,
+  ventasPorCliente,
 };
