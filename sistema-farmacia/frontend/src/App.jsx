@@ -5,6 +5,15 @@ import { useState, useEffect } from 'react';
 import Login from './modules/usuarios/Login';
 import Usuarios from './modules/usuarios/Usuarios';
 import { MedicamentosView } from './modules/medicamentos/MedicamentosView';
+import { VentasPage } from './modules/ventas';
+
+// Modulos con pantalla enlazada en la navegacion. Al integrar un modulo nuevo
+// se agrega aqui y se renderiza mas abajo, en el <main>.
+const MODULOS = [
+  { id: 'medicamentos', texto: 'Medicamentos' },
+  { id: 'ventas', texto: 'Ventas' },
+  { id: 'usuarios', texto: 'Usuarios' },
+];
 
 export default function App() {
   const [token, setToken] = useState(null);
@@ -95,32 +104,26 @@ export default function App() {
 
         {/* ── Navegación de Módulos (Tabs) ── */}
         <div className="max-w-6xl mx-auto px-4 flex gap-4 mt-2 border-t border-gray-100 pt-2">
-          <button
-            onClick={() => setModuloActivo('medicamentos')}
-            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-              moduloActivo === 'medicamentos'
-                ? 'border-blue-600 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            Medicamentos
-          </button>
-          <button
-            onClick={() => setModuloActivo('usuarios')}
-            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-              moduloActivo === 'usuarios'
-                ? 'border-blue-600 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            Usuarios
-          </button>
+          {MODULOS.map((m) => (
+            <button
+              key={m.id}
+              onClick={() => setModuloActivo(m.id)}
+              className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                moduloActivo === m.id
+                  ? 'border-blue-600 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              {m.texto}
+            </button>
+          ))}
         </div>
       </header>
 
       {/* ── Contenido principal ── */}
       <main className="max-w-6xl mx-auto p-4">
         {moduloActivo === 'medicamentos' && <MedicamentosView />}
+        {moduloActivo === 'ventas' && <VentasPage usuario={usuarioActual} />}
         {moduloActivo === 'usuarios' && <Usuarios onLogout={handleLogout} />}
       </main>
     </div>

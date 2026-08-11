@@ -30,9 +30,28 @@ export const registrarVenta = (venta) =>
   request('/ventas', { method: 'POST', body: JSON.stringify(venta) });
 
 /* ---------- Catalogos de otros modulos ----------
-   Clientes y Medicamentos son de otros equipos (Fases 1 y 2). Mientras no esten
-   integrados en develop, estas llamadas fallan: devolvemos null y la pantalla
-   entra en modo demo con datos locales, sin romperse. */
+   Se consumen por sus endpoints publicos. El stock no viene con el medicamento:
+   vive en la tabla inventario, asi que hay que pedir las dos cosas y cruzarlas. */
 
-export const obtenerClientes = () => request('/clientes').catch(() => null);
-export const obtenerMedicamentos = () => request('/medicamentos').catch(() => null);
+export const obtenerClientes = () => request('/clientes');
+export const obtenerMedicamentos = () => request('/medicamentos');
+export const obtenerInventario = () => request('/inventario');
+
+// Devuelve los medicamentos con su stock_actual incorporado. Un medicamento sin
+// fila en inventario queda con stock 0: no se puede vender lo que no esta dado
+// de alta en bodega.
+export async function obtenerMedicamentosConStock() {
+  const [medicamentos, inventario] = await Promise.all([
+    obtenerMedicamentos(),
+    obtenerInventario(),
+  ]);
+
+  const stockPorMedicamento = new Map(
+    (inventario ?? []).map((i) => [i.id_medicamento, i.stock_actual])
+  );
+
+  return (medicamentos ?? []).map((m) => ({
+    ...m,
+    stock_actual: stockPorMedicamento.get(m.id_medicamento) ?? 0,
+  }));
+}
