@@ -75,7 +75,20 @@ const eliminar = async (id) => {
 
   await obtenerPorId(id);
 
-  return clientesModel.remove(id);
+  try {
+    return await clientesModel.remove(id);
+  } catch (error) {
+    // 23503 = foreign_key_violation. Ventas referencia id_cliente, asi que un
+    // cliente con compras registradas no se puede borrar. Sin esta traduccion,
+    // el controller devolvia un 500 con el mensaje crudo de PostgreSQL.
+    if (error && error.code === '23503') {
+      throw crearError(
+        'No se puede eliminar el cliente porque tiene ventas registradas.',
+        409
+      );
+    }
+    throw error;
+  }
 };
 
 module.exports = {
