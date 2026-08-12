@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
 import UsuarioForm from './UsuarioForm';
+import { leerToken } from './sesion';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+
+const MENSAJE_SESION_EXPIRADA = 'Tu sesión expiró. Volvé a iniciar sesión.';
 
 export default function Usuarios({ onLogout }) {
   const [usuarios, setUsuarios] = useState([]);
@@ -33,16 +36,28 @@ export default function Usuarios({ onLogout }) {
     }, 3000);
   };
 
+  // Usuarios es el unico modulo con rutas protegidas (verificarToken), asi que
+  // es el unico que puede recibir un 401. Cuando pasa, no sirve mostrar un error
+  // en pantalla: el token esta muerto y ninguna accion de aqui va a funcionar.
+  // Se cierra la sesion y se vuelve al login con el motivo.
+  const sesionExpirada = () => {
+    if (onLogout) onLogout(MENSAJE_SESION_EXPIRADA);
+  };
+
   const fetchUsuarios = async () => {
     setCargando(true);
     setError('');
     try {
-      const token = localStorage.getItem('token');
+      const token = leerToken();
+      if (!token) return sesionExpirada();
+
       const response = await fetch(`${API_URL}/usuarios`, {
         headers: {
           'Authorization': 'Bearer ' + token,
         },
       });
+
+      if (response.status === 401) return sesionExpirada();
 
       if (!response.ok) {
         const errData = await response.json().catch(() => ({}));
@@ -75,7 +90,9 @@ export default function Usuarios({ onLogout }) {
   const handleGuardar = async (datosFormulario) => {
     setGuardando(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = leerToken();
+      if (!token) return sesionExpirada();
+
       const esEdicion = Boolean(datosFormulario.id_usuario);
       const url = esEdicion
         ? `${API_URL}/usuarios/${datosFormulario.id_usuario}`
@@ -99,6 +116,8 @@ export default function Usuarios({ onLogout }) {
         },
         body: JSON.stringify(payload),
       });
+
+      if (response.status === 401) return sesionExpirada();
 
       const resData = await response.json().catch(() => ({}));
 
@@ -128,13 +147,17 @@ export default function Usuarios({ onLogout }) {
     if (!usuarioAEliminar) return;
     setEliminando(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = leerToken();
+      if (!token) return sesionExpirada();
+
       const response = await fetch(`${API_URL}/usuarios/${usuarioAEliminar.id_usuario}`, {
         method: 'DELETE',
         headers: {
           'Authorization': 'Bearer ' + token,
         },
       });
+
+      if (response.status === 401) return sesionExpirada();
 
       const resData = await response.json().catch(() => ({}));
 

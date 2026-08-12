@@ -4,6 +4,7 @@
 import { useState, useEffect } from 'react';
 import Login from './modules/usuarios/Login';
 import Usuarios from './modules/usuarios/Usuarios';
+import { limpiarSesion, tokenVencido } from './modules/usuarios/sesion';
 import { MedicamentosView } from './modules/medicamentos/MedicamentosView';
 import { VentasPage } from './modules/ventas';
 import { ProveedoresPage } from './modules/proveedores';
@@ -23,13 +24,16 @@ const MODULOS = [
   { id: 'usuarios', texto: 'Usuarios' },
 ];
 
-// localStorage se comparte por ORIGEN, no por proyecto: cualquier app que haya
-// corrido antes en localhost:5173 (la rama de otro companero, otro proyecto de
-// Vite) escribe en esta misma llave "usuario". Si lo guardado no tiene la forma
-// que espera esta app, se descarta en vez de romper el render: un objeto donde
-// se espera texto tumba React entero con "Objects are not valid as a React child".
-// Normaliza el usuario venga de donde venga (localStorage o respuesta del
-// login). Devuelve null si no sirve, y siempre deja email y rol como texto.
+const MENSAJE_SESION_EXPIRADA = 'Tu sesión expiró. Volvé a iniciar sesión.';
+
+// Cada cuanto se revisa si el token vencio mientras la pestana sigue abierta.
+const INTERVALO_CHEQUEO_SESION = 60 * 1000;
+
+// Normaliza el usuario que devuelve el login. El backend al que apunte el
+// frontend podria no ser el de este repositorio (otra rama del grupo, otro
+// puerto) y devolverlo con otra forma; un objeto donde se espera texto tumba
+// React entero con "Objects are not valid as a React child".
+// Devuelve null si no sirve, y siempre deja email y rol como texto.
 function normalizarUsuario(usuario) {
   if (!usuario || typeof usuario !== 'object' || Array.isArray(usuario)) return null;
   if (typeof usuario.email !== 'string') return null;
@@ -46,66 +50,59 @@ function normalizarUsuario(usuario) {
   };
 }
 
-function leerUsuarioGuardado() {
-  const crudo = localStorage.getItem('usuario');
-  if (!crudo) return null;
-
-  try {
-    const usuario = normalizarUsuario(JSON.parse(crudo));
-    if (!usuario) {
-      localStorage.removeItem('usuario');
-      localStorage.removeItem('token');
-      return null;
-    }
-    return usuario;
-  } catch {
-    localStorage.removeItem('usuario');
-    localStorage.removeItem('token');
-    return null;
-  }
-}
-
 export default function App() {
   const [token, setToken] = useState(null);
   const [usuarioActual, setUsuarioActual] = useState(null);
   const [moduloActivo, setModuloActivo] = useState('medicamentos'); // Tab activa por defecto
+  const [avisoLogin, setAvisoLogin] = useState('');
 
-  // ── Leer sesión guardada al montar ──
+  // ── Al abrir la app siempre se arranca en el Login ──
+  // Antes se restauraba la sesion guardada en localStorage sin revisar si el
+  // token seguia vivo. Como dura 8h, al reabrir el navegador entrabas directo a
+  // Medicamentos con un token muerto y Usuarios —el unico modulo protegido con
+  // verificarToken— respondia 401 sin explicacion: sesion zombi. Se descarta lo
+  // guardado y se piden credenciales de nuevo.
+  //
+  // Efecto: recargar la pagina obliga a volver a entrar. Es a proposito.
   useEffect(() => {
-    const usuarioGuardado = leerUsuarioGuardado();
-
-    // Se lee el token DESPUES de validar el usuario: si la sesion guardada no
-    // servia, leerUsuarioGuardado ya borro ambas llaves y toca volver a entrar.
-    const tokenGuardado = localStorage.getItem('token');
-
-    if (tokenGuardado) {
-      setToken(tokenGuardado);
-    }
-    if (usuarioGuardado) {
-      setUsuarioActual(usuarioGuardado);
-    }
+    limpiarSesion();
   }, []);
 
+  // ── Cerrar sesión ──
+  // Recibe un aviso opcional para explicar en el Login por que se cerro.
+  const cerrarSesion = (aviso) => {
+    limpiarSesion();
+    setToken(null);
+    setUsuarioActual(null);
+    setModuloActivo('medicamentos');
+    setAvisoLogin(typeof aviso === 'string' ? aviso : '');
+  };
+
+  // ── Vigilar el vencimiento del token durante la sesión ──
+  // Cubre el caso de dejar la pestana abierta mas de 8h: en vez de quedarse en
+  // una pantalla viva contra un backend que ya la rechaza, se cierra sola.
+  useEffect(() => {
+    if (!token) return;
+
+    const revisar = () => {
+      if (tokenVencido(token)) cerrarSesion(MENSAJE_SESION_EXPIRADA);
+    };
+
+    revisar();
+    const idIntervalo = setInterval(revisar, INTERVALO_CHEQUEO_SESION);
+    return () => clearInterval(idIntervalo);
+  }, [token]);
+
   // ── Login exitoso ──
-  // Tambien se normaliza aqui: el backend al que apunte el frontend podria no
-  // ser el de este repositorio (otra rama del grupo, otro puerto) y devolver el
-  // usuario con otra forma.
   const handleLoginSuccess = (data) => {
+    setAvisoLogin('');
     setToken(data.token);
     setUsuarioActual(normalizarUsuario(data.usuario));
   };
 
-  // ── Cerrar sesión ──
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('usuario');
-    setToken(null);
-    setUsuarioActual(null);
-  };
-
   // ── Sin token: mostrar Login ──
   if (!token) {
-    return <Login onLoginSuccess={handleLoginSuccess} />;
+    return <Login onLoginSuccess={handleLoginSuccess} aviso={avisoLogin} />;
   }
 
   // Se fuerza a texto antes de pintar: si el backend algun dia devuelve el rol
@@ -147,7 +144,7 @@ export default function App() {
 
             {/* Botón cerrar sesión */}
             <button
-              onClick={handleLogout}
+              onClick={() => cerrarSesion()}
               className="bg-white border border-gray-300 text-gray-700 rounded-md px-3 py-1.5 text-sm hover:bg-gray-50 transition-colors flex items-center gap-1.5"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -184,7 +181,7 @@ export default function App() {
         {moduloActivo === 'clientes' && <ClientesView />}
         {moduloActivo === 'ventas' && <VentasPage usuario={usuarioActual} />}
         {moduloActivo === 'reportes' && <ReportesPage />}
-        {moduloActivo === 'usuarios' && <Usuarios onLogout={handleLogout} />}
+        {moduloActivo === 'usuarios' && <Usuarios onLogout={cerrarSesion} />}
       </main>
     </div>
   );

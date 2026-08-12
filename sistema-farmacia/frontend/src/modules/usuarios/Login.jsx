@@ -1,12 +1,15 @@
 import { useState } from 'react';
+import { guardarSesion } from './sesion';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
-export default function Login({ onLoginSuccess }) {
-  
+// `aviso` lo manda App.jsx cuando la sesion se cerro sola (token vencido), para
+// que la pantalla explique por que se volvio al login.
+export default function Login({ onLoginSuccess, aviso = '' }) {
+
   const [isRegistering, setIsRegistering] = useState(false);
 
-  
+
   // La tabla usuarios solo tiene email, password y rol: no se pide nombre.
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -14,7 +17,10 @@ export default function Login({ onLoginSuccess }) {
 
   // ── Estado de UI ──
   const [loading, setLoading] = useState(false);
-  const [mensaje, setMensaje] = useState({ texto: '', tipo: '' }); // tipo: 'exito' | 'error'
+  // tipo: 'exito' | 'aviso' | 'error'
+  const [mensaje, setMensaje] = useState(
+    aviso ? { texto: aviso, tipo: 'aviso' } : { texto: '', tipo: '' }
+  );
 
   // ── Limpiar formulario al cambiar de modo ──
   const toggleMode = () => {
@@ -49,13 +55,8 @@ export default function Login({ onLoginSuccess }) {
         throw new Error(data.error || 'Credenciales incorrectas.');
       }
 
-      // Guardar token en localStorage
-      if (data.token) {
-        localStorage.setItem('token', data.token);
-      }
-      if (data.usuario) {
-        localStorage.setItem('usuario', JSON.stringify(data.usuario));
-      }
+      // Guardar la sesion (token + usuario) en localStorage
+      guardarSesion(data.token, data.usuario);
 
       setMensaje({ texto: '¡Inicio de sesión exitoso!', tipo: 'exito' });
 
@@ -138,7 +139,9 @@ export default function Login({ onLoginSuccess }) {
               className={`mb-4 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-300 ${
                 mensaje.tipo === 'exito'
                   ? 'bg-green-100 text-green-700 border border-green-200'
-                  : 'bg-red-100 text-red-700 border border-red-200'
+                  : mensaje.tipo === 'aviso'
+                    ? 'bg-amber-100 text-amber-700 border border-amber-200'
+                    : 'bg-red-100 text-red-700 border border-red-200'
               }`}
             >
               <div className="flex items-center gap-2">
