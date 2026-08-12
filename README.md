@@ -6,7 +6,6 @@ giovanni de leon - Carne No. 202308088
 Douglas Morales - Carne No. 202308025 - Me gusta el pan
 
 Andrea López - 202308101
-Marco Siguenza - 202308022
 Nathaly Reyes - Carne No. 202308017
 
 
