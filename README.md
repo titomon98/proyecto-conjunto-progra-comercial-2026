@@ -4,7 +4,6 @@ giovanni de leon - Carne No. 202308088
 
 Marco Bolaños - 202308016
 Douglas Morales - Carne No. 202308025 - Me gusta el pan
-Marvin Fuentes - Carne No. 202308032
 
 Andrea López - 202308101
 Marco Siguenza - 202308022
