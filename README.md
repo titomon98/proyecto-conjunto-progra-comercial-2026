@@ -72,7 +72,6 @@ Christian Ramirez - Carno No. 202308041
 
 
 
-Josue Vasquez - Carne No. 202308030
 
 
 
