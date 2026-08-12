@@ -13,7 +13,7 @@ Nathaly Reyes - Carne No. 202308017
 Johan Méndez - 202308046
 
 Arturo Monterroso - Carne No. 201608006 - Me gustan los gatos
-Emerson Tahay - Carnet No. 202308012 .;|
+
 
 AQUI NO ACEPTAMOS AL ALAJUELENSE QUE NOS ROBAN HASTA LAS COMPUS
 Joshua David - Carne No. 202308056 HOLAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
