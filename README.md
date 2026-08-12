@@ -4,7 +4,6 @@ giovanni de leon - Carne No. 202308088
 
 Marco Bolaños - 202308016
 Ethan Ruiz - 202308079
-Adrian Giron - 202308036
 Douglas Morales - Carne No. 202308025 - Me gusta el pan
 Marvin Fuentes - Carne No. 202308032
 Sebastian Orozco - Carne No. 202308067
@@ -39,7 +38,7 @@ AQUI NO ACEPTAMOS AL ALAJUELENSE QUE NOS ROBAN HASTA LAS COMPUS
 AQUI NO ACEPTAMOS AL ALAJUELENSE QUE NOS ROBAN HASTA LAS COMPUS
 
 
-Mario Guzman - Carne No. 202308049
+
 
 
 
