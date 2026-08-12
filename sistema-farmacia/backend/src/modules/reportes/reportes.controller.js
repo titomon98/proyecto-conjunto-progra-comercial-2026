@@ -36,7 +36,41 @@ const ventasPorCliente = async (req, res) => {
   }
 };
 
+const medicamentosMasVendidos = async (req, res) => {
+  try {
+    const reporte = await reportesService.generarReporteMedicamentosMasVendidos(req.query);
+
+    return res.status(200).json({
+      success: true,
+      data: reporte,
+    });
+  } catch (error) {
+    return res.status(error.status || 500).json({
+      success: false,
+      message: error.message || 'Error al generar el reporte de medicamentos mas vendidos.',
+    });
+  }
+};
+
+const ventasDiarias = async (req, res) => {
+  try {
+    const reporte = await reportesService.generarReporteVentasDiarias(req.query);
+
+    return res.status(200).json({
+      success: true,
+      data: reporte,
+    });
+  } catch (error) {
+    return res.status(error.status || 500).json({
+      success: false,
+      message: error.message || 'Error al generar el reporte de ventas diarias.',
+    });
+  }
+};
+
 module.exports = {
   ventasPorPeriodo,
   ventasPorCliente,
+  medicamentosMasVendidos,
+  ventasDiarias,
 };
