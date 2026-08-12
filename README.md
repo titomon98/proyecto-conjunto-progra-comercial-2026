@@ -12,7 +12,6 @@ Marvin Fuentes - Carne No. 202308032
 
 
 Andrea López - 202308101
-Marco Siguenza - 202308022
 Nathaly Reyes - Carne No. 202308017
 
 
