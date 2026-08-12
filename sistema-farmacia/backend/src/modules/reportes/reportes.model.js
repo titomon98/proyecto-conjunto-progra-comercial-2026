@@ -87,9 +87,42 @@ const obtenerCatalogoMedicamentos = async () => {
   return data ?? [];
 };
 
+const obtenerInventarioValorizadoData = async () => {
+  const { data, error } = await supabase
+    .from('inventario')
+    .select(`
+      stock_actual,
+      id_medicamento,
+      medicamentos (nombre, precio)
+    `);
+  if (error) throw error;
+  return data ?? [];
+};
+
+const obtenerDetalleVentasPorMedicamentoData = async (fechaInicio, fechaFin) => {
+  const { data, error } = await supabase
+    .from('detalle_ventas')
+    .select(`
+      cantidad,
+      subtotal,
+      medicamentos (nombre),
+      ventas!inner (
+        id_venta,
+        fecha,
+        clientes (nombre)
+      )
+    `)
+    .gte('ventas.fecha', fechaInicio)
+    .lte('ventas.fecha', fechaFin);
+  if (error) throw error;
+  return data ?? [];
+};
+
 module.exports = {
   obtenerVentasPorPeriodo,
   obtenerVentasParaReporteClientes,
   obtenerVentasConDetallePorPeriodo,
   obtenerCatalogoMedicamentos,
+  obtenerInventarioValorizadoData, // AÑADIDO
+  obtenerDetalleVentasPorMedicamentoData
 };

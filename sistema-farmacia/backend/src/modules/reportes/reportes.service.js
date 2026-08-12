@@ -270,9 +270,69 @@ const generarReporteVentasDiarias = async ({ fechaInicio, fechaFin } = {}) => {
   };
 };
 
+const generarReporteInventarioValorizado = async () => {
+  const inventario = await reportesModel.obtenerInventarioValorizadoData();
+  
+  const detalle = inventario.map(item => {
+    const precio = Number(item.medicamentos?.precio || 0);
+    const stock = Number(item.stock_actual || 0);
+    return {
+      id_medicamento: item.id_medicamento,
+      nombre_medicamento: item.medicamentos?.nombre || 'Desconocido',
+      stock_actual: stock,
+      precio_unitario: precio,
+      valor_estimado: stock * precio
+    };
+  }).sort((a, b) => b.valor_estimado - a.valor_estimado);
+
+  const resumen = {
+    total_medicamentos: detalle.length,
+    total_unidades: detalle.reduce((acc, curr) => acc + curr.stock_actual, 0),
+    valor_total_estimado: detalle.reduce((acc, curr) => acc + curr.valor_estimado, 0)
+  };
+
+  return { resumen, detalle };
+};
+
+const generarReporteDetalleVentas = async ({ fechaInicio, fechaFin }) => {
+  const inicio = validarFecha(fechaInicio, 'fechaInicio'); 
+  const fin = validarFecha(fechaFin, 'fechaFin');
+
+  if (inicio > fin) {
+    throw crearErrorValidacion('fechaInicio no puede ser posterior a fechaFin.');
+  }
+
+  const finDelDia = new Date(fin);
+  finDelDia.setUTCHours(23, 59, 59, 999);
+
+  const ventasDb = await reportesModel.obtenerDetalleVentasPorMedicamentoData(
+    inicio.toISOString(), 
+    finDelDia.toISOString()
+  );
+
+  const detalle = ventasDb.map(item => ({
+    fecha_venta: item.ventas?.fecha,
+    id_venta: item.ventas?.id_venta,
+    cliente: item.ventas?.clientes?.nombre || 'Consumidor Final',
+    medicamento: item.medicamentos?.nombre || 'Desconocido',
+    cantidad_vendida: Number(item.cantidad || 0),
+    subtotal: Number(item.subtotal || 0)
+  })).sort((a, b) => new Date(b.fecha_venta) - new Date(a.fecha_venta));
+
+  const resumen = {
+    total_lineas: detalle.length,
+    total_unidades_vendidas: detalle.reduce((acc, curr) => acc + curr.cantidad_vendida, 0),
+    monto_total_subtotales: detalle.reduce((acc, curr) => acc + curr.subtotal, 0)
+  };
+
+  return { resumen, detalle };
+};
+
 module.exports = {
   generarReporteVentas,
   generarReporteVentasPorCliente,
   generarReporteMedicamentosMasVendidos,
   generarReporteVentasDiarias,
+  generarReporteInventarioValorizado, // AÑADIDO
+  generarReporteDetalleVentas
 };

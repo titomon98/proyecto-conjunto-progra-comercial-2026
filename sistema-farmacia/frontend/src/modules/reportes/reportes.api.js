@@ -44,3 +44,12 @@ export const obtenerVentasDiarias = ({ fechaInicio, fechaFin }) => {
   const params = new URLSearchParams({ fechaInicio, fechaFin });
   return request(`/reportes/ventas-diarias?${params.toString()}`);
 };
+
+export const obtenerInventarioValorizado = () => {
+  return request('/reportes/inventario-valorizado');
+};
+
+export const obtenerDetalleVentasMedicamento = ({ fechaInicio, fechaFin }) => {
+  const params = new URLSearchParams({ fechaInicio, fechaFin });
+  return request(`/reportes/detalle-ventas-medicamento?${params.toString()}`);
+};
