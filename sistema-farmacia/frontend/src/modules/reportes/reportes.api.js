@@ -30,3 +30,17 @@ export const obtenerReporteVentasPorCliente = ({ fechaInicio, fechaFin } = {}) =
   const query = params.toString();
   return request(`/reportes/ventas-clientes${query ? `?${query}` : ''}`);
 };
+
+export const obtenerReporteMedicamentosMasVendidos = ({ fechaInicio, fechaFin } = {}) => {
+  const params = new URLSearchParams();
+  if (fechaInicio) params.set('fechaInicio', fechaInicio);
+  if (fechaFin) params.set('fechaFin', fechaFin);
+
+  const query = params.toString();
+  return request(`/reportes/medicamentos-mas-vendidos${query ? `?${query}` : ''}`);
+};
+
+export const obtenerReporteVentasDiarias = ({ fechaInicio, fechaFin }) => {
+  const params = new URLSearchParams({ fechaInicio, fechaFin });
+  return request(`/reportes/ventas-diarias?${params.toString()}`);
+};

@@ -1,9 +1,16 @@
 import { useState } from 'react';
-import { obtenerReporteVentas, obtenerReporteVentasPorCliente } from './reportes.api.js';
+import {
+  obtenerReporteVentas,
+  obtenerReporteVentasPorCliente,
+  obtenerReporteMedicamentosMasVendidos,
+  obtenerReporteVentasDiarias,
+} from './reportes.api.js';
 
 const PESTANAS = [
   { id: 'ventas', texto: 'Ventas por periodo' },
   { id: 'clientes', texto: 'Ventas por cliente' },
+  { id: 'medicamentos', texto: 'Medicamentos mas vendidos' },
+  { id: 'diarias', texto: 'Ventas diarias' },
 ];
 
 const formatoMoneda = new Intl.NumberFormat('es-GT', {
@@ -39,12 +46,22 @@ export default function ReportesPage() {
   const [fechaFin, setFechaFin] = useState('');
   const [fechaInicioClientes, setFechaInicioClientes] = useState('');
   const [fechaFinClientes, setFechaFinClientes] = useState('');
+  const [fechaInicioMedicamentos, setFechaInicioMedicamentos] = useState('');
+  const [fechaFinMedicamentos, setFechaFinMedicamentos] = useState('');
+  const [fechaInicioDiarias, setFechaInicioDiarias] = useState('');
+  const [fechaFinDiarias, setFechaFinDiarias] = useState('');
   const [reporteVentas, setReporteVentas] = useState(null);
   const [reporteClientes, setReporteClientes] = useState(null);
+  const [reporteMedicamentos, setReporteMedicamentos] = useState(null);
+  const [reporteDiarias, setReporteDiarias] = useState(null);
   const [cargandoVentas, setCargandoVentas] = useState(false);
   const [cargandoClientes, setCargandoClientes] = useState(false);
+  const [cargandoMedicamentos, setCargandoMedicamentos] = useState(false);
+  const [cargandoDiarias, setCargandoDiarias] = useState(false);
   const [errorVentas, setErrorVentas] = useState(null);
   const [errorClientes, setErrorClientes] = useState(null);
+  const [errorMedicamentos, setErrorMedicamentos] = useState(null);
+  const [errorDiarias, setErrorDiarias] = useState(null);
 
   const generarVentas = async (event) => {
     event.preventDefault();
@@ -81,6 +98,46 @@ export default function ReportesPage() {
     }
   };
 
+  const generarMedicamentosMasVendidos = async (event) => {
+    event.preventDefault();
+    setCargandoMedicamentos(true);
+    setErrorMedicamentos(null);
+
+    try {
+      const data = await obtenerReporteMedicamentosMasVendidos({
+        fechaInicio: fechaInicioMedicamentos,
+        fechaFin: fechaFinMedicamentos,
+      });
+      setReporteMedicamentos(data);
+    } catch (error) {
+      setReporteMedicamentos(null);
+      setErrorMedicamentos(
+        error.message || 'No se pudo generar el reporte de medicamentos mas vendidos.'
+      );
+    } finally {
+      setCargandoMedicamentos(false);
+    }
+  };
+
+  const generarVentasDiarias = async (event) => {
+    event.preventDefault();
+    setCargandoDiarias(true);
+    setErrorDiarias(null);
+
+    try {
+      const data = await obtenerReporteVentasDiarias({
+        fechaInicio: fechaInicioDiarias,
+        fechaFin: fechaFinDiarias,
+      });
+      setReporteDiarias(data);
+    } catch (error) {
+      setReporteDiarias(null);
+      setErrorDiarias(error.message || 'No se pudo generar el reporte de ventas diarias.');
+    } finally {
+      setCargandoDiarias(false);
+    }
+  };
+
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
       <header className="mb-6">
@@ -107,7 +164,7 @@ export default function ReportesPage() {
         ))}
       </nav>
 
-      {pestana === 'ventas' ? (
+      {pestana === 'ventas' && (
         <section className="space-y-6">
           <form
             onSubmit={generarVentas}
@@ -231,7 +288,9 @@ export default function ReportesPage() {
             </>
           )}
         </section>
-      ) : (
+      )}
+
+      {pestana === 'clientes' && (
         <section className="space-y-6">
           <form
             onSubmit={generarVentasPorCliente}
@@ -356,6 +415,262 @@ export default function ReportesPage() {
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-800">
                           {formatearFecha(registro.ultima_compra)}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {pestana === 'medicamentos' && (
+        <section className="space-y-6">
+          <form
+            onSubmit={generarMedicamentosMasVendidos}
+            className="bg-white rounded-xl shadow-sm border border-gray-200 p-5"
+          >
+            <div className="grid gap-4 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+              <label className="block">
+                <span className="block text-sm font-medium text-gray-700 mb-1.5">
+                  Fecha inicial
+                </span>
+                <input
+                  type="date"
+                  value={fechaInicioMedicamentos}
+                  onChange={(event) => setFechaInicioMedicamentos(event.target.value)}
+                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm text-gray-800"
+                />
+              </label>
+
+              <label className="block">
+                <span className="block text-sm font-medium text-gray-700 mb-1.5">
+                  Fecha final
+                </span>
+                <input
+                  type="date"
+                  value={fechaFinMedicamentos}
+                  onChange={(event) => setFechaFinMedicamentos(event.target.value)}
+                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm text-gray-800"
+                />
+              </label>
+
+              <button
+                type="submit"
+                disabled={cargandoMedicamentos}
+                className="bg-blue-600 text-white rounded-md px-4 py-2.5 hover:bg-blue-700 transition-colors disabled:opacity-60"
+              >
+                {cargandoMedicamentos ? 'Generando...' : 'Generar reporte'}
+              </button>
+            </div>
+          </form>
+
+          {errorMedicamentos && <Aviso tono="rojo">{errorMedicamentos}</Aviso>}
+          {cargandoMedicamentos && (
+            <Aviso tono="azul">Cargando medicamentos mas vendidos...</Aviso>
+          )}
+
+          {reporteMedicamentos && (
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 px-5 py-4">
+                <p className="text-sm text-gray-500">Medicamentos</p>
+                <p className="mt-1 text-2xl font-semibold text-gray-800">
+                  {reporteMedicamentos.resumen.total_medicamentos}
+                </p>
+              </div>
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 px-5 py-4">
+                <p className="text-sm text-gray-500">Unidades vendidas</p>
+                <p className="mt-1 text-2xl font-semibold text-gray-800">
+                  {reporteMedicamentos.resumen.total_unidades}
+                </p>
+              </div>
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 px-5 py-4">
+                <p className="text-sm text-gray-500">Monto vendido</p>
+                <p className="mt-1 text-2xl font-semibold text-gray-800">
+                  {formatoMoneda.format(reporteMedicamentos.resumen.monto_total)}
+                </p>
+              </div>
+            </div>
+          )}
+
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-gray-50 border-b border-gray-200">
+                    <th className="text-left text-sm font-medium text-gray-500 uppercase px-6 py-3">
+                      Medicamento
+                    </th>
+                    <th className="text-left text-sm font-medium text-gray-500 uppercase px-6 py-3">
+                      ID
+                    </th>
+                    <th className="text-right text-sm font-medium text-gray-500 uppercase px-6 py-3">
+                      Unidades vendidas
+                    </th>
+                    <th className="text-right text-sm font-medium text-gray-500 uppercase px-6 py-3">
+                      Ventas en las que aparece
+                    </th>
+                    <th className="text-right text-sm font-medium text-gray-500 uppercase px-6 py-3">
+                      Monto total
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {!cargandoMedicamentos && !reporteMedicamentos ? (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
+                        Genera el reporte para consultar los medicamentos mas vendidos.
+                      </td>
+                    </tr>
+                  ) : !cargandoMedicamentos && reporteMedicamentos?.medicamentos.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
+                        No existen ventas registradas en el periodo seleccionado.
+                      </td>
+                    </tr>
+                  ) : (
+                    reporteMedicamentos?.medicamentos.map((medicamento) => (
+                      <tr key={medicamento.id_medicamento} className="hover:bg-gray-50/50">
+                        <td className="px-6 py-4 text-sm text-gray-800 font-medium">
+                          {medicamento.medicamento}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-500">
+                          {medicamento.id_medicamento}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-800 text-right">
+                          {medicamento.total_unidades}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-800 text-right">
+                          {medicamento.cantidad_ventas}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-800 text-right font-medium">
+                          {formatoMoneda.format(medicamento.monto_total)}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {pestana === 'diarias' && (
+        <section className="space-y-6">
+          <form
+            onSubmit={generarVentasDiarias}
+            className="bg-white rounded-xl shadow-sm border border-gray-200 p-5"
+          >
+            <div className="grid gap-4 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+              <label className="block">
+                <span className="block text-sm font-medium text-gray-700 mb-1.5">
+                  Fecha inicial
+                </span>
+                <input
+                  type="date"
+                  value={fechaInicioDiarias}
+                  onChange={(event) => setFechaInicioDiarias(event.target.value)}
+                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm text-gray-800"
+                />
+              </label>
+
+              <label className="block">
+                <span className="block text-sm font-medium text-gray-700 mb-1.5">
+                  Fecha final
+                </span>
+                <input
+                  type="date"
+                  value={fechaFinDiarias}
+                  onChange={(event) => setFechaFinDiarias(event.target.value)}
+                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm text-gray-800"
+                />
+              </label>
+
+              <button
+                type="submit"
+                disabled={cargandoDiarias}
+                className="bg-blue-600 text-white rounded-md px-4 py-2.5 hover:bg-blue-700 transition-colors disabled:opacity-60"
+              >
+                {cargandoDiarias ? 'Generando...' : 'Generar reporte'}
+              </button>
+            </div>
+          </form>
+
+          {errorDiarias && <Aviso tono="rojo">{errorDiarias}</Aviso>}
+          {cargandoDiarias && <Aviso tono="azul">Cargando ventas diarias...</Aviso>}
+
+          {reporteDiarias && (
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 px-5 py-4">
+                <p className="text-sm text-gray-500">Dias con ventas</p>
+                <p className="mt-1 text-2xl font-semibold text-gray-800">
+                  {reporteDiarias.resumen.total_dias}
+                </p>
+              </div>
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 px-5 py-4">
+                <p className="text-sm text-gray-500">Unidades vendidas</p>
+                <p className="mt-1 text-2xl font-semibold text-gray-800">
+                  {reporteDiarias.resumen.total_unidades}
+                </p>
+              </div>
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 px-5 py-4">
+                <p className="text-sm text-gray-500">Monto vendido</p>
+                <p className="mt-1 text-2xl font-semibold text-gray-800">
+                  {formatoMoneda.format(reporteDiarias.resumen.monto_total)}
+                </p>
+              </div>
+            </div>
+          )}
+
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-gray-50 border-b border-gray-200">
+                    <th className="text-left text-sm font-medium text-gray-500 uppercase px-6 py-3">
+                      Fecha
+                    </th>
+                    <th className="text-right text-sm font-medium text-gray-500 uppercase px-6 py-3">
+                      Cantidad de ventas
+                    </th>
+                    <th className="text-right text-sm font-medium text-gray-500 uppercase px-6 py-3">
+                      Unidades vendidas
+                    </th>
+                    <th className="text-right text-sm font-medium text-gray-500 uppercase px-6 py-3">
+                      Monto total
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {!cargandoDiarias && !reporteDiarias ? (
+                    <tr>
+                      <td colSpan={4} className="px-6 py-12 text-center text-gray-500">
+                        Genera el reporte para consultar las ventas agrupadas por dia.
+                      </td>
+                    </tr>
+                  ) : !cargandoDiarias && reporteDiarias?.dias.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="px-6 py-12 text-center text-gray-500">
+                        No existen ventas registradas en el periodo seleccionado.
+                      </td>
+                    </tr>
+                  ) : (
+                    reporteDiarias?.dias.map((dia) => (
+                      <tr key={dia.fecha} className="hover:bg-gray-50/50">
+                        <td className="px-6 py-4 text-sm text-gray-800 font-medium">
+                          {dia.fecha}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-800 text-right">
+                          {dia.cantidad_ventas}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-800 text-right">
+                          {dia.total_unidades}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-800 text-right font-medium">
+                          {formatoMoneda.format(dia.monto_total)}
                         </td>
                       </tr>
                     ))

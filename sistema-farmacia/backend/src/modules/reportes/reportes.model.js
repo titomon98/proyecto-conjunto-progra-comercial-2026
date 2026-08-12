@@ -54,7 +54,38 @@ const obtenerVentasParaReporteClientes = async (fechaInicio, fechaFin) => {
   return data;
 };
 
+// Detalle de ventas (linea por medicamento) para agregarlo por medicamento.
+// Se filtra por la fecha de la venta asociada (relacion embebida con !inner
+// para poder aplicar .gte/.lte sobre 'ventas.fecha').
+const obtenerDetalleVentasPorPeriodo = async (fechaInicio, fechaFin) => {
+  let query = supabase
+    .from('detalle_ventas')
+    .select(`
+      id_detalle,
+      id_medicamento,
+      cantidad,
+      subtotal,
+      medicamentos (
+        id_medicamento,
+        nombre
+      ),
+      ventas!inner (
+        id_venta,
+        fecha
+      )
+    `);
+
+  if (fechaInicio) query = query.gte('ventas.fecha', fechaInicio);
+  if (fechaFin) query = query.lte('ventas.fecha', fechaFin);
+
+  const { data, error } = await query;
+
+  if (error) throw error;
+  return data;
+};
+
 module.exports = {
   obtenerVentasPorPeriodo,
   obtenerVentasParaReporteClientes,
+  obtenerDetalleVentasPorPeriodo,
 };
