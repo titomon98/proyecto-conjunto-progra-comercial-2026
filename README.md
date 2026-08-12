@@ -29,7 +29,39 @@ Luis Suarez - 202308019!
 AQUI NO ACEPTAMOS AL ALAJUELENSE QUE NOS ROBAN HASTA LAS COMPUS
 AQUI NO ACEPTAMOS AL ALAJUELENSE QUE NOS ROBAN HASTA LAS COMPUS
 
-Josue Vasquez - Carne No. 202308030
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 Kenneth Ramirez - Carne NO - 202308009\
 
