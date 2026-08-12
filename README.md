@@ -3,10 +3,15 @@ Ejercicio 1 de Github
 giovanni de leon - Carne No. 202308088
 
 
-Douglas Morales - Carne No. 202308025 - Me gusta el pan
+Marco Bolaños - 202308016
 
-Andrea López - 202308101
-Marco Siguenza - 202308022
+Marvin Fuentes - Carne No. 202308032
+
+
+
+
+
+
 Nathaly Reyes - Carne No. 202308017
 
 
@@ -30,7 +35,7 @@ AQUI NO ACEPTAMOS AL ALAJUELENSE QUE NOS ROBAN HASTA LAS COMPUS
 
 
 
-Angel Ovalle - Carne No. 202308014
+
 
 
 
