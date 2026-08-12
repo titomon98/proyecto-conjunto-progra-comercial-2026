@@ -6,6 +6,8 @@ const reportesController = require('./reportes.controller');
 const router = Router();
 
 router.get('/ventas', reportesController.ventasPorPeriodo);
-router.get('/ventas-clientes', reportesController.ventasPorCliente);
+router.get('/ventas-clientes', reportesController.ventasPorCliente)
+router.get('/medicamentos-mas-vendidos', reportesController.medicamentosMasVendidos);
+router.get('/ventas-diarias', reportesController.ventasDiarias);;
 
 module.exports = router;

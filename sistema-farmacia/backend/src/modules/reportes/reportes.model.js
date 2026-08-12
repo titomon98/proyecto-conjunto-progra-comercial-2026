@@ -54,7 +54,42 @@ const obtenerVentasParaReporteClientes = async (fechaInicio, fechaFin) => {
   return data;
 };
 
+const obtenerVentasConDetallePorPeriodo = async (fechaInicio, fechaFin) => {
+  let query = supabase
+    .from('ventas')
+    .select(`
+      id_venta,
+      fecha,
+      total,
+      detalle_ventas (
+        id_medicamento,
+        cantidad,
+        subtotal
+      )
+    `)
+    .order('fecha', { ascending: true });
+
+  if (fechaInicio) query = query.gte('fecha', fechaInicio);
+  if (fechaFin) query = query.lte('fecha', fechaFin);
+
+  const { data, error } = await query;
+
+  if (error) throw error;
+  return data ?? [];
+};
+
+const obtenerCatalogoMedicamentos = async () => {
+  const { data, error } = await supabase
+    .from('medicamentos')
+    .select('id_medicamento, nombre');
+
+  if (error) throw error;
+  return data ?? [];
+};
+
 module.exports = {
   obtenerVentasPorPeriodo,
   obtenerVentasParaReporteClientes,
+  obtenerVentasConDetallePorPeriodo,
+  obtenerCatalogoMedicamentos,
 };

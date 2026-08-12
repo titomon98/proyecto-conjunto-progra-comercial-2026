@@ -1,9 +1,13 @@
 import { useState } from 'react';
 import { obtenerReporteVentas, obtenerReporteVentasPorCliente } from './reportes.api.js';
+import ReporteMedicamentosMasVendidos from './components/ReporteMedicamentosMasVendidos.jsx';
+import ReporteVentasDiarias from './components/ReporteVentasDiarias.jsx';
 
 const PESTANAS = [
   { id: 'ventas', texto: 'Ventas por periodo' },
   { id: 'clientes', texto: 'Ventas por cliente' },
+  { id: 'medicamentos', texto: 'Medicamentos mas vendidos' },
+  { id: 'diarias', texto: 'Ventas diarias' },
 ];
 
 const formatoMoneda = new Intl.NumberFormat('es-GT', {
@@ -107,7 +111,11 @@ export default function ReportesPage() {
         ))}
       </nav>
 
-      {pestana === 'ventas' ? (
+      {pestana === 'medicamentos' && <ReporteMedicamentosMasVendidos />}
+
+      {pestana === 'diarias' && <ReporteVentasDiarias />}
+
+      {pestana === 'ventas' && (
         <section className="space-y-6">
           <form
             onSubmit={generarVentas}
@@ -231,7 +239,9 @@ export default function ReportesPage() {
             </>
           )}
         </section>
-      ) : (
+      )}
+
+      {pestana === 'clientes' && (
         <section className="space-y-6">
           <form
             onSubmit={generarVentasPorCliente}
