@@ -4,7 +4,6 @@ giovanni de leon - Carne No. 202308088
 
 Marco Bolaños - 202308016
 Douglas Morales - Carne No. 202308025 - Me gusta el pan
-Marvin Fuentes - Carne No. 202308032
 
 Andrea López - 202308101
 Marco Siguenza - 202308022
@@ -29,9 +28,40 @@ Luis Suarez - 202308019!
 AQUI NO ACEPTAMOS AL ALAJUELENSE QUE NOS ROBAN HASTA LAS COMPUS
 AQUI NO ACEPTAMOS AL ALAJUELENSE QUE NOS ROBAN HASTA LAS COMPUS
 
-Josue Vasquez - Carne No. 202308030
 
-Kenneth Ramirez - Carne NO - 202308009\
+
+
+
+
+Angel Ovalle - Carne No. 202308014
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 Juan José Martínez - 202208011
 Demy De Leon - Carne No. 202308063
