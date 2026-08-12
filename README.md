@@ -2,9 +2,8 @@ Ejercicio 1 de Github
 
 giovanni de leon - Carne No. 202308088
 
-Marco Bolaños - 202308016
+
 Douglas Morales - Carne No. 202308025 - Me gusta el pan
-Marvin Fuentes - Carne No. 202308032
 
 Andrea López - 202308101
 Marco Siguenza - 202308022
@@ -16,7 +15,6 @@ Arturo Monterroso - Carne No. 201608006 - Me gustan los gatos
 
 
 AQUI NO ACEPTAMOS AL ALAJUELENSE QUE NOS ROBAN HASTA LAS COMPUS
-Joshua David - Carne No. 202308056 HOLAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 
 marvin tenia razon
 
