@@ -1,0 +1,8 @@
+/* La regla @import debe ir antes que cualquier otra regla del archivo; si queda
+   despues de las directivas @tailwind el navegador la descarta y la fuente Inter
+   configurada en tailwind.config.js nunca carga. */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
