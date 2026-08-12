@@ -4,7 +4,6 @@ giovanni de leon - Carne No. 202308088
 
 
 Douglas Morales - Carne No. 202308025 - Me gusta el pan
-Marvin Fuentes - Carne No. 202308032
 
 Andrea López - 202308101
 Marco Siguenza - 202308022
@@ -16,7 +15,6 @@ Arturo Monterroso - Carne No. 201608006 - Me gustan los gatos
 
 
 AQUI NO ACEPTAMOS AL ALAJUELENSE QUE NOS ROBAN HASTA LAS COMPUS
-Joshua David - Carne No. 202308056 HOLAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 
 marvin tenia razon
 
@@ -34,6 +32,7 @@ AQUI NO ACEPTAMOS AL ALAJUELENSE QUE NOS ROBAN HASTA LAS COMPUS
 
 
 
+Angel Ovalle - Carne No. 202308014
 
 
 
@@ -62,8 +61,6 @@ AQUI NO ACEPTAMOS AL ALAJUELENSE QUE NOS ROBAN HASTA LAS COMPUS
 
 
 
-
-Kenneth Ramirez - Carne NO - 202308009\
 
 Juan José Martínez - 202208011
 Demy De Leon - Carne No. 202308063
