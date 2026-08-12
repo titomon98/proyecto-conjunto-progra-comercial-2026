@@ -64,4 +64,14 @@ AQUI NO ACEPTAMOS AL ALAJUELENSE QUE NOS ROBAN HASTA LAS COMPUS
 
 
 
+
+
+
+Kenneth Ramirez - Carne NO - 202308009\
+
+
+Juan José Martínez - 202208011
+Demy De Leon - Carne No. 202308063
+
+Pedro López - 202308038
 Demy De Leon - Carne No. 202308063
