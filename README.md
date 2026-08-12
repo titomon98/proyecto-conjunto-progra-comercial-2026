@@ -8,7 +8,7 @@ Marco Bolaños - 202308016
 Marvin Fuentes - Carne No. 202308032
 
 
-Douglas Morales - Carne No. 202308025 - Me gusta el pan
+
 
 
 Andrea López - 202308101
