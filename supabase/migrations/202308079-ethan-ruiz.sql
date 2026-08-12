@@ -4,7 +4,8 @@
 -- Responsable: Ethan Ruiz (202308079)
 --
 -- Descripción: Inserta el usuario propio en la tabla de usuarios.
--- =========================================================
+-- ==============
+===========================================
 
 CREATE TABLE ethantabla (
     id INT AUTO_INCREMENT PRIMARY KEY,
