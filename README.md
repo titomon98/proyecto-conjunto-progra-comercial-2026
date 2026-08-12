@@ -2,9 +2,14 @@ Ejercicio 1 de Github
 
 giovanni de leon - Carne No. 202308088
 
+
 Marco Bolaños - 202308016
 
 Marvin Fuentes - Carne No. 202308032
+
+
+Douglas Morales - Carne No. 202308025 - Me gusta el pan
+
 
 Andrea López - 202308101
 Marco Siguenza - 202308022
