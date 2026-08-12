@@ -1,3 +1,6 @@
+// frontend/src/modules/reportes/reportes.api.js
+// Unico lugar del modulo que habla con el backend.
+
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api';
 
 async function request(path) {
@@ -14,16 +17,16 @@ async function request(path) {
   return json.data ?? json;
 }
 
-function construirQuery({ fechaInicio, fechaFin } = {}) {
+export const obtenerReporteVentas = ({ fechaInicio, fechaFin }) => {
+  const params = new URLSearchParams({ fechaInicio, fechaFin });
+  return request(`/reportes/ventas?${params.toString()}`);
+};
+
+export const obtenerReporteVentasPorCliente = ({ fechaInicio, fechaFin } = {}) => {
   const params = new URLSearchParams();
   if (fechaInicio) params.set('fechaInicio', fechaInicio);
   if (fechaFin) params.set('fechaFin', fechaFin);
+
   const query = params.toString();
-  return query ? `?${query}` : '';
-}
-
-export const obtenerMedicamentosMasVendidos = (filtros) =>
-  request(`/reportes/medicamentos-mas-vendidos${construirQuery(filtros)}`);
-
-export const obtenerVentasDiarias = (filtros) =>
-  request(`/reportes/ventas-diarias${construirQuery(filtros)}`);
+  return request(`/reportes/ventas-clientes${query ? `?${query}` : ''}`);
+};

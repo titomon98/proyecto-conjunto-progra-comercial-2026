@@ -1,46 +1,60 @@
+// Model del modulo reportes.
+// Responsabilidad: acceso a datos. Unica capa que habla directamente con
+// Supabase / PostgreSQL para consultas de solo lectura.
+
 const supabase = require('../../config/supabase');
 
-const TABLA_VENTAS = 'ventas';
-const TABLA_DETALLE = 'detalle_ventas';
-const TABLA_MEDICAMENTOS = 'medicamentos';
-
-const obtenerVentasConDetalle = async ({ desde, hasta } = {}) => {
-  let query = supabase
-    .from(TABLA_VENTAS)
+const obtenerVentasPorPeriodo = async (fechaInicio, fechaFin) => {
+  const { data, error } = await supabase
+    .from('ventas')
     .select(`
       id_venta,
       fecha,
       total,
+      clientes (
+        id_cliente,
+        nombre
+      ),
       detalle_ventas (
-        id_detalle,
-        id_medicamento,
-        cantidad,
-        subtotal
+        cantidad
       )
     `)
+    .gte('fecha', fechaInicio)
+    .lte('fecha', fechaFin)
     .order('fecha', { ascending: true });
 
-  if (desde) query = query.gte('fecha', desde);
-  if (hasta) query = query.lt('fecha', hasta);
-
-  const { data, error } = await query;
   if (error) throw error;
-  return data ?? [];
+  return data;
 };
 
-const obtenerCatalogoMedicamentos = async () => {
-  const { data, error } = await supabase
-    .from(TABLA_MEDICAMENTOS)
-    .select('id_medicamento, nombre');
+const obtenerVentasParaReporteClientes = async (fechaInicio, fechaFin) => {
+  let query = supabase
+    .from('ventas')
+    .select(`
+      id_venta,
+      fecha,
+      total,
+      id_cliente,
+      clientes (
+        id_cliente,
+        nombre
+      ),
+      detalle_ventas (
+        cantidad
+      )
+    `)
+    .order('fecha', { ascending: false });
+
+  if (fechaInicio) query = query.gte('fecha', fechaInicio);
+  if (fechaFin) query = query.lte('fecha', fechaFin);
+
+  const { data, error } = await query;
 
   if (error) throw error;
-  return data ?? [];
+  return data;
 };
 
 module.exports = {
-  TABLA_VENTAS,
-  TABLA_DETALLE,
-  TABLA_MEDICAMENTOS,
-  obtenerVentasConDetalle,
-  obtenerCatalogoMedicamentos,
+  obtenerVentasPorPeriodo,
+  obtenerVentasParaReporteClientes,
 };

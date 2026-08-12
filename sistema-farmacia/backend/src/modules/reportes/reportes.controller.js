@@ -1,31 +1,42 @@
+// Controller del modulo reportes.
+// Responsabilidad: leer la peticion (req), validar la entrada, llamar al service
+// y devolver la respuesta (res). No debe contener logica de negocio.
+
 const reportesService = require('./reportes.service');
 
-const medicamentosMasVendidos = async (req, res) => {
+const ventasPorPeriodo = async (req, res) => {
   try {
-    const { fechaInicio, fechaFin } = req.query;
-    const data = await reportesService.obtenerMedicamentosMasVendidos({ fechaInicio, fechaFin });
+    const reporte = await reportesService.generarReporteVentas(req.query);
 
-    return res.status(200).json({ success: true, data });
+    return res.status(200).json({
+      success: true,
+      data: reporte,
+    });
   } catch (error) {
     return res.status(error.status || 500).json({
       success: false,
-      message: error.message || 'Error al generar el reporte de medicamentos más vendidos',
+      message: error.message || 'Error al generar el reporte de ventas.',
     });
   }
 };
 
-const ventasDiarias = async (req, res) => {
+const ventasPorCliente = async (req, res) => {
   try {
-    const { fechaInicio, fechaFin } = req.query;
-    const data = await reportesService.obtenerVentasDiarias({ fechaInicio, fechaFin });
+    const reporte = await reportesService.generarReporteVentasPorCliente(req.query);
 
-    return res.status(200).json({ success: true, data });
+    return res.status(200).json({
+      success: true,
+      data: reporte,
+    });
   } catch (error) {
     return res.status(error.status || 500).json({
       success: false,
-      message: error.message || 'Error al generar el reporte de ventas diarias',
+      message: error.message || 'Error al generar el reporte de ventas por cliente.',
     });
   }
 };
 
-module.exports = { medicamentosMasVendidos, ventasDiarias };
+module.exports = {
+  ventasPorPeriodo,
+  ventasPorCliente,
+};

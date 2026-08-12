@@ -1,8 +1,9 @@
+// Punto de entrada publico del modulo reportes.
+// Exporta UNICAMENTE lo que este modulo expone hacia el resto del sistema.
+// Los demas archivos del modulo son internos: no deben importarse desde fuera.
+
 const router = require('./reportes.routes');
-const reportesService = require('./reportes.service');
 
 module.exports = {
   router,
-  obtenerMedicamentosMasVendidos: reportesService.obtenerMedicamentosMasVendidos,
-  obtenerVentasDiarias: reportesService.obtenerVentasDiarias,
 };
