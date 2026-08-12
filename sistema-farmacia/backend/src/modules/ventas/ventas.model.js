@@ -11,7 +11,7 @@
 // (Sección 4).
 // =========================================================
 
-const supabase = require('../../config/supabaseClient');
+const supabase = require('../../config/supabase');
 
 const TABLA_VENTAS = 'ventas';
 const TABLA_DETALLE = 'detalle_ventas';

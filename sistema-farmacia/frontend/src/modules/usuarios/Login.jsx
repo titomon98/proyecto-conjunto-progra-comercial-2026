@@ -1,27 +1,32 @@
 import { useState } from 'react';
+import { guardarSesion } from './sesion';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
-export default function Login({ onLoginSuccess }) {
-  
+// `aviso` lo manda App.jsx cuando la sesion se cerro sola (token vencido), para
+// que la pantalla explique por que se volvio al login.
+export default function Login({ onLoginSuccess, aviso = '' }) {
+
   const [isRegistering, setIsRegistering] = useState(false);
 
-  
+
+  // La tabla usuarios solo tiene email, password y rol: no se pide nombre.
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [nombre, setNombre] = useState('');
   const [confirmarPassword, setConfirmarPassword] = useState('');
 
   // ── Estado de UI ──
   const [loading, setLoading] = useState(false);
-  const [mensaje, setMensaje] = useState({ texto: '', tipo: '' }); // tipo: 'exito' | 'error'
+  // tipo: 'exito' | 'aviso' | 'error'
+  const [mensaje, setMensaje] = useState(
+    aviso ? { texto: aviso, tipo: 'aviso' } : { texto: '', tipo: '' }
+  );
 
   // ── Limpiar formulario al cambiar de modo ──
   const toggleMode = () => {
     setIsRegistering(!isRegistering);
     setEmail('');
     setPassword('');
-    setNombre('');
     setConfirmarPassword('');
     setMensaje({ texto: '', tipo: '' });
   };
@@ -50,13 +55,8 @@ export default function Login({ onLoginSuccess }) {
         throw new Error(data.error || 'Credenciales incorrectas.');
       }
 
-      // Guardar token en localStorage
-      if (data.token) {
-        localStorage.setItem('token', data.token);
-      }
-      if (data.usuario) {
-        localStorage.setItem('usuario', JSON.stringify(data.usuario));
-      }
+      // Guardar la sesion (token + usuario) en localStorage
+      guardarSesion(data.token, data.usuario);
 
       setMensaje({ texto: '¡Inicio de sesión exitoso!', tipo: 'exito' });
 
@@ -76,7 +76,7 @@ export default function Login({ onLoginSuccess }) {
     e.preventDefault();
     setMensaje({ texto: '', tipo: '' });
 
-    if (!nombre.trim() || !email.trim() || !password.trim() || !confirmarPassword.trim()) {
+    if (!email.trim() || !password.trim() || !confirmarPassword.trim()) {
       setMensaje({ texto: 'Por favor completa todos los campos.', tipo: 'error' });
       return;
     }
@@ -86,17 +86,12 @@ export default function Login({ onLoginSuccess }) {
       return;
     }
 
-    if (password.length < 6) {
-      setMensaje({ texto: 'La contraseña debe tener al menos 6 caracteres.', tipo: 'error' });
-      return;
-    }
-
     setLoading(true);
     try {
       const res = await fetch(`${API_URL}/usuarios/registro`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nombre, email, password }),
+        body: JSON.stringify({ email, password }),
       });
 
       const data = await res.json();
@@ -109,7 +104,6 @@ export default function Login({ onLoginSuccess }) {
 
       setTimeout(() => {
         setIsRegistering(false);
-        setNombre('');
         setConfirmarPassword('');
         setMensaje({ texto: '', tipo: '' });
       }, 1500);
@@ -145,7 +139,9 @@ export default function Login({ onLoginSuccess }) {
               className={`mb-4 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-300 ${
                 mensaje.tipo === 'exito'
                   ? 'bg-green-100 text-green-700 border border-green-200'
-                  : 'bg-red-100 text-red-700 border border-red-200'
+                  : mensaje.tipo === 'aviso'
+                    ? 'bg-amber-100 text-amber-700 border border-amber-200'
+                    : 'bg-red-100 text-red-700 border border-red-200'
               }`}
             >
               <div className="flex items-center gap-2">
@@ -165,24 +161,6 @@ export default function Login({ onLoginSuccess }) {
 
           {/* ── Formulario ── */}
           <form onSubmit={isRegistering ? handleRegistro : handleLogin} className="space-y-5">
-            {/* Campo Nombre (solo en registro) */}
-            {isRegistering && (
-              <div>
-                <label htmlFor="nombre" className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Nombre completo
-                </label>
-                <input
-                  type="text"
-                  id="nombre"
-                  name="nombre"
-                  value={nombre}
-                  onChange={(e) => setNombre(e.target.value)}
-                  placeholder="Ej. María López"
-                  className="w-full px-4 py-2.5 text-base text-gray-800 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors placeholder:text-gray-400"
-                />
-              </div>
-            )}
-
             {/* Campo Email */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1.5">
@@ -275,6 +253,23 @@ export default function Login({ onLoginSuccess }) {
               </button>
             </p>
           </div>
+
+          {/* ── Credenciales de prueba ──
+              Ayuda para el desarrollo del curso: son las cuentas sembradas en la
+              base compartida. QUITAR antes de la entrega final. */}
+          {!isRegistering && (
+            <div className="mt-6 pt-4 border-t border-gray-100">
+              <p className="text-xs text-gray-400 mb-1.5">Credenciales de prueba</p>
+              <div className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 space-y-1">
+                <p className="text-xs text-gray-600 font-mono select-all">
+                  admin@farmacia.test
+                </p>
+                <p className="text-xs text-gray-600 font-mono select-all">
+                  hash_placeholder_1
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* ── Footer ── */}

@@ -1,4 +1,6 @@
-const BASE_URL = 'http://localhost:3000/api/medicamentos';
+// Configurable con VITE_API_URL en frontend/.env (ver .env.example).
+const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api';
+const BASE_URL = `${API_URL}/medicamentos`;
 
 /**
  * Obtiene el listado completo de medicamentos.

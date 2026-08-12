@@ -17,7 +17,12 @@ export function FormularioMedicamento({ medicamentoEditar, onGuardar, onCancelar
         precio: medicamentoEditar.precio || '',
         id_proveedor: medicamentoEditar.id_proveedor || ''
       });
+    } else {
+      // Al pasar de "editar" a "nuevo" hay que limpiar, o el formulario se
+      // queda con los datos del medicamento anterior.
+      setFormData({ nombre: '', descripcion: '', precio: '', id_proveedor: '' });
     }
+    setError('');
   }, [medicamentoEditar]);
 
   const handleChange = (e) => {
@@ -45,63 +50,105 @@ export function FormularioMedicamento({ medicamentoEditar, onGuardar, onCancelar
     });
   };
 
+  const claseInput =
+    'w-full px-4 py-2.5 text-base text-gray-800 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors placeholder:text-gray-400';
+
   return (
-    <div style={{ border: '1px solid #ccc', padding: '1rem', marginBottom: '1rem', borderRadius: '4px', backgroundColor: '#f9f9f9' }}>
-      <h3>{medicamentoEditar ? 'Editar Medicamento' : 'Nuevo Medicamento'}</h3>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      
-      <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '0.5rem', maxWidth: '400px' }}>
-        <div>
-          <label>Nombre *</label>
-          <input
-            type="text"
-            name="nombre"
-            value={formData.nombre}
-            onChange={handleChange}
-            style={{ width: '100%', padding: '0.4rem' }}
-          />
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+      <div className="pb-4 border-b border-gray-100 mb-5">
+        <h2 className="text-gray-800 text-xl font-semibold">
+          {medicamentoEditar ? 'Editar Medicamento' : 'Nuevo Medicamento'}
+        </h2>
+        <p className="text-sm text-gray-500 mt-1">
+          {medicamentoEditar
+            ? 'Actualice la información del medicamento seleccionado.'
+            : 'Complete los datos del medicamento que desea registrar.'}
+        </p>
+      </div>
+
+      {error && (
+        <div className="bg-red-100 text-red-700 border border-red-200 rounded-lg px-4 py-3 mb-5 text-sm">
+          {error}
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="nombre" className="block text-sm font-medium text-gray-700 mb-1.5">
+              Nombre <span className="text-red-500">*</span>
+            </label>
+            <input
+              id="nombre"
+              type="text"
+              name="nombre"
+              value={formData.nombre}
+              onChange={handleChange}
+              placeholder="Ej. Paracetamol 500mg"
+              className={claseInput}
+            />
+          </div>
+
+          <div>
+            <label htmlFor="precio" className="block text-sm font-medium text-gray-700 mb-1.5">
+              Precio (Q) <span className="text-red-500">*</span>
+            </label>
+            <input
+              id="precio"
+              type="number"
+              step="0.01"
+              name="precio"
+              value={formData.precio}
+              onChange={handleChange}
+              placeholder="0.00"
+              className={claseInput}
+            />
+          </div>
         </div>
 
         <div>
-          <label>Descripción</label>
+          <label htmlFor="descripcion" className="block text-sm font-medium text-gray-700 mb-1.5">
+            Descripción
+          </label>
           <input
+            id="descripcion"
             type="text"
             name="descripcion"
             value={formData.descripcion}
             onChange={handleChange}
-            style={{ width: '100%', padding: '0.4rem' }}
+            placeholder="Ej. Analgésico y antipirético"
+            className={claseInput}
           />
         </div>
 
         <div>
-          <label>Precio (Q) *</label>
+          <label htmlFor="id_proveedor" className="block text-sm font-medium text-gray-700 mb-1.5">
+            ID Proveedor (UUID) <span className="text-red-500">*</span>
+          </label>
           <input
-            type="number"
-            step="0.01"
-            name="precio"
-            value={formData.precio}
-            onChange={handleChange}
-            style={{ width: '100%', padding: '0.4rem' }}
-          />
-        </div>
-
-        <div>
-          <label>ID Proveedor (UUID) *</label>
-          <input
+            id="id_proveedor"
             type="text"
             name="id_proveedor"
             value={formData.id_proveedor}
             onChange={handleChange}
-            style={{ width: '100%', padding: '0.4rem' }}
+            placeholder="00000000-0000-0000-0000-000000000000"
+            className={`${claseInput} font-mono text-sm`}
           />
         </div>
 
-        <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
-          <button type="submit" style={{ backgroundColor: '#2563eb', color: '#fff', padding: '0.5rem 1rem', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
-            Guardar
-          </button>
-          <button type="button" onClick={onCancelar} style={{ backgroundColor: '#6b7280', color: '#fff', padding: '0.5rem 1rem', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+        <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100 mt-6">
+          <button
+            type="button"
+            onClick={onCancelar}
+            className="bg-white border border-gray-300 text-gray-700 rounded-md px-4 py-2 hover:bg-gray-50 transition-colors"
+          >
             Cancelar
+          </button>
+          <button
+            type="submit"
+            className="bg-blue-600 text-white rounded-md px-4 py-2 hover:bg-blue-700 transition-colors"
+          >
+            Guardar
           </button>
         </div>
       </form>

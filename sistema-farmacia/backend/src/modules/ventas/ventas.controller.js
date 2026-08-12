@@ -1,14 +1,14 @@
 // backend/src/modules/ventas/ventas.controller.js
-import * as ventasService from './ventas.service.js';
+const ventasService = require('./ventas.service');
 
-export const registrarVenta = async (req, res) => {
+const registrarVenta = async (req, res) => {
   try {
     const { id_cliente, id_usuario, productos } = req.body;
 
     if (!id_cliente || !id_usuario || !productos) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Faltan campos obligatorios (id_cliente, id_usuario, productos)' 
+      return res.status(400).json({
+        success: false,
+        message: 'Faltan campos obligatorios (id_cliente, id_usuario, productos)',
       });
     }
 
@@ -17,27 +17,32 @@ export const registrarVenta = async (req, res) => {
     return res.status(201).json({
       success: true,
       message: 'Venta realizada con éxito',
-      data: nuevaVenta
+      data: nuevaVenta,
     });
   } catch (error) {
-    return res.status(500).json({
+    return res.status(error.status || 500).json({
       success: false,
-      message: error.message || 'Error interno al procesar la venta'
+      message: error.message || 'Error interno al procesar la venta',
     });
   }
 };
 
-export const obtenerVentas = async (req, res) => {
+const obtenerVentas = async (req, res) => {
   try {
     const ventas = await ventasService.obtenerListaVentas();
     return res.status(200).json({
       success: true,
-      data: ventas
+      data: ventas,
     });
   } catch (error) {
-    return res.status(500).json({
+    return res.status(error.status || 500).json({
       success: false,
-      message: error.message || 'Error al obtener ventas'
+      message: error.message || 'Error al obtener ventas',
     });
   }
+};
+
+module.exports = {
+  registrarVenta,
+  obtenerVentas,
 };

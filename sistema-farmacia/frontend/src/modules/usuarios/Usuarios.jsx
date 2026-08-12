@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
 import UsuarioForm from './UsuarioForm';
+import { leerToken } from './sesion';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+
+const MENSAJE_SESION_EXPIRADA = 'Tu sesión expiró. Volvé a iniciar sesión.';
 
 export default function Usuarios({ onLogout }) {
   const [usuarios, setUsuarios] = useState([]);
@@ -33,16 +36,28 @@ export default function Usuarios({ onLogout }) {
     }, 3000);
   };
 
+  // Usuarios es el unico modulo con rutas protegidas (verificarToken), asi que
+  // es el unico que puede recibir un 401. Cuando pasa, no sirve mostrar un error
+  // en pantalla: el token esta muerto y ninguna accion de aqui va a funcionar.
+  // Se cierra la sesion y se vuelve al login con el motivo.
+  const sesionExpirada = () => {
+    if (onLogout) onLogout(MENSAJE_SESION_EXPIRADA);
+  };
+
   const fetchUsuarios = async () => {
     setCargando(true);
     setError('');
     try {
-      const token = localStorage.getItem('token');
+      const token = leerToken();
+      if (!token) return sesionExpirada();
+
       const response = await fetch(`${API_URL}/usuarios`, {
         headers: {
           'Authorization': 'Bearer ' + token,
         },
       });
+
+      if (response.status === 401) return sesionExpirada();
 
       if (!response.ok) {
         const errData = await response.json().catch(() => ({}));
@@ -75,15 +90,16 @@ export default function Usuarios({ onLogout }) {
   const handleGuardar = async (datosFormulario) => {
     setGuardando(true);
     try {
-      const token = localStorage.getItem('token');
-      const esEdicion = Boolean(datosFormulario.id);
+      const token = leerToken();
+      if (!token) return sesionExpirada();
+
+      const esEdicion = Boolean(datosFormulario.id_usuario);
       const url = esEdicion
-        ? `${API_URL}/usuarios/${datosFormulario.id}`
+        ? `${API_URL}/usuarios/${datosFormulario.id_usuario}`
         : `${API_URL}/usuarios`;
       const method = esEdicion ? 'PUT' : 'POST';
 
       const payload = {
-        nombre: datosFormulario.nombre,
         email: datosFormulario.email,
         rol: datosFormulario.rol,
       };
@@ -100,6 +116,8 @@ export default function Usuarios({ onLogout }) {
         },
         body: JSON.stringify(payload),
       });
+
+      if (response.status === 401) return sesionExpirada();
 
       const resData = await response.json().catch(() => ({}));
 
@@ -129,13 +147,17 @@ export default function Usuarios({ onLogout }) {
     if (!usuarioAEliminar) return;
     setEliminando(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${API_URL}/usuarios/${usuarioAEliminar.id}`, {
+      const token = leerToken();
+      if (!token) return sesionExpirada();
+
+      const response = await fetch(`${API_URL}/usuarios/${usuarioAEliminar.id_usuario}`, {
         method: 'DELETE',
         headers: {
           'Authorization': 'Bearer ' + token,
         },
       });
+
+      if (response.status === 401) return sesionExpirada();
 
       const resData = await response.json().catch(() => ({}));
 
@@ -155,9 +177,9 @@ export default function Usuarios({ onLogout }) {
 
   const usuariosFiltrados = usuarios.filter((u) => {
     const term = busqueda.toLowerCase();
-    const nombre = (u.nombre || '').toLowerCase();
     const email = (u.email || '').toLowerCase();
-    return nombre.includes(term) || email.includes(term);
+    const rol = (u.rol || '').toLowerCase();
+    return email.includes(term) || rol.includes(term);
   });
 
   return (
@@ -200,7 +222,7 @@ export default function Usuarios({ onLogout }) {
         <div className="p-4 border-b border-gray-200">
           <input
             type="text"
-            placeholder="Buscar por nombre o correo..."
+            placeholder="Buscar por correo o rol..."
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
             className="w-full sm:max-w-xs px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm text-gray-800"
@@ -222,16 +244,10 @@ export default function Usuarios({ onLogout }) {
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-200">
                   <th className="bg-gray-50 text-left text-sm font-medium text-gray-500 uppercase tracking-wider px-6 py-3">
-                    Nombre
-                  </th>
-                  <th className="bg-gray-50 text-left text-sm font-medium text-gray-500 uppercase tracking-wider px-6 py-3">
                     Correo
                   </th>
                   <th className="bg-gray-50 text-left text-sm font-medium text-gray-500 uppercase tracking-wider px-6 py-3">
                     Rol
-                  </th>
-                  <th className="bg-gray-50 text-left text-sm font-medium text-gray-500 uppercase tracking-wider px-6 py-3">
-                    Estado
                   </th>
                   <th className="bg-gray-50 text-left text-sm font-medium text-gray-500 uppercase tracking-wider px-6 py-3">
                     Fecha
@@ -243,32 +259,17 @@ export default function Usuarios({ onLogout }) {
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {usuariosFiltrados.map((u) => {
-                  const esActivo = u.activo !== false;
-                  const fechaFormateada = u.created_at || u.createdAt
-                    ? new Date(u.created_at || u.createdAt).toLocaleDateString('es-GT')
+                  const fechaFormateada = u.created_at
+                    ? new Date(u.created_at).toLocaleDateString('es-GT')
                     : '-';
 
                   return (
-                    <tr key={u.id} className="border-b border-gray-200 hover:bg-gray-50/50">
+                    <tr key={u.id_usuario} className="border-b border-gray-200 hover:bg-gray-50/50">
                       <td className="px-6 py-4 text-sm text-gray-800 font-medium">
-                        {u.nombre}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-800">
                         {u.email}
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-800 capitalize">
-                        {u.rol || 'admin'}
-                      </td>
                       <td className="px-6 py-4 text-sm text-gray-800">
-                        {esActivo ? (
-                          <span className="bg-green-100 text-green-700 rounded-full px-2.5 py-0.5 text-xs font-medium">
-                            Activo
-                          </span>
-                        ) : (
-                          <span className="bg-red-100 text-red-700 rounded-full px-2.5 py-0.5 text-xs font-medium">
-                            Inactivo
-                          </span>
-                        )}
+                        {u.rol || 'Sin rol'}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-800">
                         {fechaFormateada}
@@ -314,7 +315,7 @@ export default function Usuarios({ onLogout }) {
               Confirmar eliminación
             </h3>
             <p className="text-gray-500 text-sm mb-6">
-              ¿Está seguro de que desea eliminar al usuario <strong className="text-gray-800">{usuarioAEliminar.nombre}</strong>? Esta acción no se puede deshacer.
+              ¿Está seguro de que desea eliminar al usuario <strong className="text-gray-800">{usuarioAEliminar.email}</strong>? Esta acción no se puede deshacer.
             </p>
             <div className="flex justify-end gap-3">
               <button

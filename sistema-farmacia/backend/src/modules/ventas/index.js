@@ -1,6 +1,11 @@
 // backend/src/modules/ventas/index.js
-import { obtenerListaVentas } from './ventas.service.js';
+// Punto de entrada publico del modulo ventas.
+// app.js monta `router`; Reportes consume `obtenerVentasParaReportes`.
 
-export default {
-  obtenerVentasParaReportes: obtenerListaVentas
+const router = require('./ventas.routes');
+const ventasService = require('./ventas.service');
+
+module.exports = {
+  router,
+  obtenerVentasParaReportes: ventasService.obtenerListaVentas,
 };

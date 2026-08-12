@@ -4,11 +4,6 @@
 
 const router = require('./reportes.routes');
 
-// TODO (equipo reportes): agregar aqui las funciones del service que otros
-// modulos necesiten consumir. Ejemplo:
-//   const reportesService = require('./reportes.service');
-//   module.exports = { router, obtenerPorId: reportesService.obtenerPorId };
-
 module.exports = {
   router,
 };

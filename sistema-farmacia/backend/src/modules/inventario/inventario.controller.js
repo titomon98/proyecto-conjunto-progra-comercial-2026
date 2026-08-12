@@ -1,22 +1,100 @@
-// Controller del modulo inventario.
-// Responsabilidad: leer la peticion (req), validar la entrada, llamar al service
-// y devolver la respuesta (res). No debe contener logica de negocio.
+const InventarioService = require("./inventario.service");
 
-// TODO (equipo inventario): implementar los handlers del modulo.
-const listar = async (req, res) => {};
+const getAll = async (req, res) => {
+  try {
+    const inventario = await InventarioService.obtenerInventario();
 
-const obtenerPorId = async (req, res) => {};
+    return res.status(200).json(inventario);
+  } catch (error) {
+    return res.status(error.status || 500).json({
+      mensaje: error.message || "Error al obtener el inventario.",
+    });
+  }
+};
 
-const crear = async (req, res) => {};
+const getById = async (req, res) => {
+  try {
+    const { id } = req.params;
 
-const actualizar = async (req, res) => {};
+    if (!id) {
+      return res.status(400).json({
+        mensaje: "El id es obligatorio.",
+      });
+    }
 
-const eliminar = async (req, res) => {};
+    const inventario =
+      await InventarioService.obtenerInventarioPorId(id);
+
+    return res.status(200).json(inventario);
+  } catch (error) {
+    return res.status(error.status || 500).json({
+      mensaje: error.message || "Error al obtener el registro.",
+    });
+  }
+};
+
+const create = async (req, res) => {
+  try {
+    const inventario =
+      await InventarioService.crearInventario(req.body);
+
+    return res.status(201).json(inventario);
+  } catch (error) {
+    return res.status(error.status || 500).json({
+      mensaje: error.message || "Error al crear el registro.",
+    });
+  }
+};
+
+const update = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({
+        mensaje: "El id es obligatorio.",
+      });
+    }
+
+    const inventario =
+      await InventarioService.actualizarInventario(
+        id,
+        req.body
+      );
+
+    return res.status(200).json(inventario);
+  } catch (error) {
+    return res.status(error.status || 500).json({
+      mensaje: error.message || "Error al actualizar el registro.",
+    });
+  }
+};
+
+const remove = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({
+        mensaje: "El id es obligatorio.",
+      });
+    }
+
+    const resultado =
+      await InventarioService.eliminarInventario(id);
+
+    return res.status(200).json(resultado);
+  } catch (error) {
+    return res.status(error.status || 500).json({
+      mensaje: error.message || "Error al eliminar el registro.",
+    });
+  }
+};
 
 module.exports = {
-  listar,
-  obtenerPorId,
-  crear,
-  actualizar,
-  eliminar,
+  getAll,
+  getById,
+  create,
+  update,
+  remove,
 };

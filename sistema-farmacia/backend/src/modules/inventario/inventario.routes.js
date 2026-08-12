@@ -1,10 +1,17 @@
-// Rutas del modulo inventario.
-// Responsabilidad: mapear cada endpoint HTTP con su funcion del controller.
-const { Router } = require('express');
+const express = require("express");
 
-const router = Router();
+const router = express.Router();
 
-// TODO (equipo inventario): declarar aqui las rutas del modulo.
-// Ejemplo: router.get('/', inventarioController.listar);
+const InventarioController = require("./inventario.controller");
+
+router.get("/", InventarioController.getAll);
+
+router.get("/:id", InventarioController.getById);
+
+router.post("/", InventarioController.create);
+
+router.put("/:id", InventarioController.update);
+
+router.delete("/:id", InventarioController.remove);
 
 module.exports = router;

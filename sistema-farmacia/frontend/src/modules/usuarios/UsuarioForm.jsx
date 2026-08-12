@@ -6,24 +6,22 @@ export default function UsuarioForm({
   onCerrar,
   guardando = false,
 }) {
-  const [nombre, setNombre] = useState('');
+  // La tabla usuarios solo tiene email, password y rol.
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [rol, setRol] = useState('admin');
+  const [rol, setRol] = useState('Vendedor');
   const [error, setError] = useState('');
 
-  const esEdicion = Boolean(usuario && usuario.id);
+  const esEdicion = Boolean(usuario && usuario.id_usuario);
 
   useEffect(() => {
     if (usuario) {
-      setNombre(usuario.nombre || '');
       setEmail(usuario.email || '');
-      setRol(usuario.rol || 'admin');
+      setRol(usuario.rol || 'Vendedor');
       setPassword('');
     } else {
-      setNombre('');
       setEmail('');
-      setRol('admin');
+      setRol('Vendedor');
       setPassword('');
     }
     setError('');
@@ -33,13 +31,7 @@ export default function UsuarioForm({
     e.preventDefault();
     setError('');
 
-    const nombreTrim = nombre.trim();
     const emailTrim = email.trim();
-
-    if (!nombreTrim) {
-      setError('El nombre completo es obligatorio.');
-      return;
-    }
 
     if (!emailTrim) {
       setError('El correo electrónico es obligatorio.');
@@ -57,19 +49,13 @@ export default function UsuarioForm({
       return;
     }
 
-    if (password && password.length < 6) {
-      setError('La contraseña debe tener al menos 6 caracteres.');
-      return;
-    }
-
     const datosFormulario = {
-      nombre: nombreTrim,
       email: emailTrim,
       rol: rol,
     };
 
     if (esEdicion) {
-      datosFormulario.id = usuario.id;
+      datosFormulario.id_usuario = usuario.id_usuario;
     }
 
     if (password) {
@@ -150,25 +136,6 @@ export default function UsuarioForm({
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Nombre completo */}
-          <div>
-            <label
-              htmlFor="nombre"
-              className="block text-sm font-medium text-gray-700 mb-1.5"
-            >
-              Nombre completo <span className="text-red-500">*</span>
-            </label>
-            <input
-              id="nombre"
-              type="text"
-              value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
-              placeholder="Ej. María González"
-              className="w-full px-4 py-2.5 text-base text-gray-800 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors placeholder:text-gray-400"
-              disabled={guardando}
-            />
-          </div>
-
           {/* Correo electrónico */}
           <div>
             <label
@@ -227,9 +194,11 @@ export default function UsuarioForm({
               className="w-full px-4 py-2.5 text-base text-gray-800 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
               disabled={guardando}
             >
-              <option value="admin">Administrador</option>
-              <option value="vendedor">Vendedor</option>
-              <option value="farmaceutico">Farmacéutico</option>
+              {/* Valores tal como estan escritos en la columna rol de la tabla. */}
+              <option value="Administrador">Administrador</option>
+              <option value="Vendedor">Vendedor</option>
+              <option value="Bodega">Bodega</option>
+              <option value="Supervisor">Supervisor</option>
             </select>
           </div>
 

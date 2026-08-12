@@ -1,5 +1,13 @@
 # Sistema de Farmacia
 
+cd backend
+npm install          # IMPORTANTE: se agregó la dependencia "cors"
+npm run dev          # http://localhost:3000
+
+cd frontend
+npm install
+npm run dev          # http://localhost:5173
+
 Proyecto grupal de Programación Comercial. Sistema de gestión para una farmacia,
 desarrollado por **7 equipos trabajando en paralelo**, cada uno dueño de un módulo.
 

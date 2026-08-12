@@ -2,18 +2,58 @@
 // Responsabilidad: acceso a datos. Unica capa que habla directamente con
 // Supabase / PostgreSQL para la(s) tabla(s) de este modulo.
 
+const supabase = require('../../config/supabase');
+
 const TABLA = 'clientes';
 
-// TODO (equipo clientes): implementar las consultas del modulo.
-const findAll = async () => {};
+const findAll = async () => {
+  const { data, error } = await supabase.from(TABLA).select('*');
+  if (error) throw error;
+  return data;
+};
 
-const findById = async (id) => {};
+const findById = async (id) => {
+  const { data, error } = await supabase
+    .from(TABLA)
+    .select('*')
+    .eq('id_cliente', id)
+    .single();
 
-const insert = async (datos) => {};
+  if (error && error.code !== 'PGRST116') throw error;
+  return data || null;
+};
 
-const update = async (id, datos) => {};
+const insert = async (datos) => {
+  const { data, error } = await supabase
+    .from(TABLA)
+    .insert(datos)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+};
 
-const remove = async (id) => {};
+const update = async (id, datos) => {
+  const { data, error } = await supabase
+    .from(TABLA)
+    .update(datos)
+    .eq('id_cliente', id)
+    .select()
+    .single();
+  if (error && error.code !== 'PGRST116') throw error;
+  return data || null;
+};
+
+const remove = async (id) => {
+  const { data, error } = await supabase
+    .from(TABLA)
+    .delete()
+    .eq('id_cliente', id)
+    .select()
+    .single();
+  if (error && error.code !== 'PGRST116') throw error;
+  return data || null;
+};
 
 module.exports = {
   TABLA,
